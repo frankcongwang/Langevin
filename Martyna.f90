@@ -5,6 +5,8 @@ module init
   integer, parameter :: num = 3000
   real(8), parameter :: w = 1d0
   real(8), parameter :: m = 1d0
+  real(8), parameter :: Mex = 1d0
+  real(8), parameter :: pressure_ex = 1d0
   integer, parameter :: eqstep=1d7/h
   integer, parameter :: tsstep=1d7/h
   integer, parameter :: sample=20
@@ -17,28 +19,30 @@ end program main
 subroutine calForcex(fn, x, V)
   use init
   implicit none
-  real(8) :: fn, x
+  real(8) :: fn, x, V
   fn = -m*w**2*V/2/pi*sin(2*pi*x/V)              !needs to be modified
 end subroutine calForcex
 
-subroutine calForceV(fn, x, V)
+subroutine calForceV(fv, x, V)
   use init
   implicit none
-  real(8) :: fn, x
-  fn = -m*w**2*V/2/pi/pi*(1-cos(2*pi*x/V)-V*x*pi*ln(V)*sin(2*pi*x/V))                        !needs to be modified
+  real(8) :: fv, x, V
+  fv = -m*w**2*V/2/pi/pi*(1-cos(2*pi*x/V)-V*x*pi*ln(V)*sin(2*pi*x/V))                        !needs to be modified
 end subroutine calForceV
 
-subroutine calpressure(Pins,pi,Fi,ri)
+subroutine calPressure(Pins,Vol,pi,Fi,ri,Fv)
   use init
   implicit none
-  real(8) :: Pins, pi, Fi, ri
-  Pins=
+  real(8) :: Pins, V, pi, Fi, ri, Fv
+!  real(8) :: 
+  Pins=1d0/V*(pi**2/m)+Fv
+end subroutine calPressure
 
 subroutine molphys
   use init
   use random
   implicit none
-  real(8) :: rand, qn, pn, qc, pc, qnp1, pnp1, fn, fnp1, a, b
+  real(8) :: rand, qn, pn, qc, pc, qnp1, pnp1, fn, fv, a, b, Volume, pressure
   real(8) :: gamma = 0.8d0
   integer :: i, j
   real*8 :: eptmp, ektmp, ep(sample), ek(sample),ep_ave,ek_ave,ep_std,ek_std
@@ -65,7 +69,8 @@ subroutine molphys
        qn = 4d0*(rand-0.5d0)
        call random_normal(rand)
        pc = 1d0*(rand-0.5d0)
-       call calForce(fn, qn)
+       call calForce(fn, qn, Volume)
+       call calForceV(fv, qn, Volume)
 
     !   write(*,*) 'sample=', j
        do i=1, eqstep
@@ -85,6 +90,7 @@ subroutine molphys
        end do
 
        do i=1, tsstep
+         pc = pc + 0.5*h*(pressure_ex
          pn = pn + 0.5*h*fn
 
           qn = qn + 0.5*h*pn/m

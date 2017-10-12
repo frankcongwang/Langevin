@@ -42,8 +42,9 @@ subroutine molphys
   use init
   use random
   implicit none
-  real(8) :: rand, qn, pn, qc, pc, qnp1, pnp1, fn, fv, a, b, Volume, pressure
+  real(8) :: rand, qn, pn, qv, pv, qnp1, pnp1, fn, fv, a, b, Pressure
   real(8) :: gamma = 0.8d0
+  real(8) :: gammav = 1.0d0
   integer :: i, j
   real*8 :: eptmp, ektmp, ep(sample), ek(sample),ep_ave,ek_ave,ep_std,ek_std
   real*8 :: cor_ep(tsstep/2),cor_ek(tsstep/2)
@@ -54,6 +55,7 @@ subroutine molphys
   ep(:)=0
   ek(:)=0
     a = exp(-gamma*h)
+    b = exp(-gammaV*h)
     write(*,*) 'gamma=',gamma, 'dt=', h
 
     do j=1, sample
@@ -74,34 +76,54 @@ subroutine molphys
 
     !   write(*,*) 'sample=', j
        do i=1, eqstep
-          pn = pn + 0.5*h*fn
-
-          qn = qn + 0.5*h*pn/m
+          call calForcex(fn,qn.qv)
+          call calForceV(fn,qn.qv)
+          call calPressure(Pressure,qv,pn,fn,qi,fv)
+          pv = pc + 0.5*h*((pressure_ex-Pressure)*qv+pn**2/m)
+          pn = pn*exp(0.5*h*pv/Mex) + 0.5*h*fn
+          qv = qv*exp(0.5*h*pv/Mex)
+          qn = qn*exp(0.5*h*pv/Mex) + 0.5*h*(pn/m)
           
+          call random_normal(rand)
+          pv = b*pv + sqrt((1-b*b)*kT)*sqrt(Mex)*rand
           call random_normal(rand)
           pn = a*pn + sqrt((1-a*a)*kT)*sqrt(m)*rand 
                                 
-          qn = qn + 0.5*h*pn/m                                 
-          call calForce(fn, qn)
+          qn = qn*exp(0.5*h*pv/Mex) + 0.5*h*(pn/m)
+          qv = qv*exp(0.5*h*pv/Mex)
+          call calForcex(fn,qn.qv)
+          call calForceV(fn,qn.qv)
+          call calPressure(Pressure,qv,pn,fn,qi,fv)
+          pn = pn*exp(0.5*h*pv/Mex) + 0.5*h*fn
+          pv = pc + 0.5*h*((pressure_ex-Pressure)*qv+pn**2/m)
 
-          pn = pn + 0.5*h*fn
 
            
        end do
 
        do i=1, tsstep
-         pc = pc + 0.5*h*(pressure_ex
-         pn = pn + 0.5*h*fn
-
-          qn = qn + 0.5*h*pn/m
+          call calForcex(fn,qn.qv)
+          call calForceV(fn,qn.qv)
+          call calPressure(Pressure,qv,pn,fn,qi,fv)
+          pv = pc + 0.5*h*((pressure_ex-Pressure)*qv+pn**2/m)
+          pn = pn*exp(0.5*h*pv/Mex) + 0.5*h*fn
+          qv = qv*exp(0.5*h*pv/Mex)
+          qn = qn*exp(0.5*h*pv/Mex) + 0.5*h*(pn/m)
           
+          call random_normal(rand)
+          pv = b*pv + sqrt((1-b*b)*kT)*sqrt(Mex)*rand
           call random_normal(rand)
           pn = a*pn + sqrt((1-a*a)*kT)*sqrt(m)*rand 
                                 
-          qn = qn + 0.5*h*pn/m                                 
-          call calForce(fn, qn)
+          qn = qn*exp(0.5*h*pv/Mex) + 0.5*h*(pn/m)
+          qv = qv*exp(0.5*h*pv/Mex)
+          call calForcex(fn,qn.qv)
+          call calForceV(fn,qn.qv)
+          call calPressure(Pressure,qv,pn,fn,qi,fv)
+          pn = pn*exp(0.5*h*pv/Mex) + 0.5*h*fn
+          pv = pc + 0.5*h*((pressure_ex-Pressure)*qv+pn**2/m)
 
-          pn = pn + 0.5*h*fn
+        
          if (mod(i, tsstep/10+1) .eq. 0) then
              write(*,*) real(i)/real(tsstep)*100, '%'
              write(*,*) qn, pn

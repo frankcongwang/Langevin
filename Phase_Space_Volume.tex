@@ -1,0 +1,151 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{mathrsfs}
+\title{Phase Space Volumes and Liouville's Theorem }
+\author{Frank}
+\begin{document}
+\maketitle
+\section{Coordinate transformation in phase space for Hamiltonian and non-Hamiltonian system}
+Since the mapping function of the point $x_0$ to $x_t$ is one-to-one, the mapping is equivalent to a coordinate transformation on the phase space from initial phase space coordinate to final coordinate
+\begin{align}
+dx_t= Jdx_0
+\end{align}
+where $J$ is the Jacobian of the transformation and $J_{kl}=\frac{\partial x^k_t}{\partial x^l_0}$. The determinant of $J$ is named
+\begin{align}
+J(x_t;x_0)=det(J)
+\end{align}
+Since $J$ is diagonal, it has eigenvalue $\lambda_k$ and $ln(J)$ has eigenvalue $ln(\lambda)$, so
+\begin{align}
+e^{Tr[ln(J)]}&=e^{\sum_kln(\lambda_k)}\nonumber\\
+&=\prod_k\lambda_k\nonumber\\
+&=det(J)
+\end{align}
+Then
+\begin{align}
+\frac{d}{dt}J(x_t;x_0)&=\frac{d}{dt}e^{Tr[ln(J)]}\nonumber\\
+&=e^{Tr[ln(J)]}Tr\bigg[\frac{dJ}{dt}J^{-1}\bigg]\nonumber\\
+&=J(x_t;x_0)\sum_{k,l}\bigg[\frac{dJ_{kl}}{dt}J^{-1}_{lk}\bigg]\nonumber\\
+&=J(x_t;x_0)\sum_{k,l}\bigg[\frac{\partial\dot{x}^k_t}{\partial x^l_0}\frac{\partial x^l_0}{\partial x^k_0}\bigg]\nonumber\\
+&=J(x_t;x_0)\sum_k\frac{\partial\dot{x}^k_t}{\partial x^k_0}
+\end{align}
+For a system evolving under Hamilton equation, the phase space compressibility $\kappa(x_t,t)=\nabla\cdot x_t=\sum_k\frac{\partial\dot{x}^k_t}{\partial x^k_0}=0$. the equation of motion for the Jacobian reduced to
+\begin{align}
+\frac{d}{dt}J(x_t;x_0)=0
+\end{align}
+This equation implies that the Jacobian is a constant at all time. Since the initial value of $J(x_t;x_0)$ is 1, it remains 1 at all time. It implies that the phase space volume is a constant, which is known as the Liouville's theorem.\\
+For a non-Hamilton system, If there's a function $\omega(x_t,t)$ such that $\kappa(x_t,t)=\frac{d}{dt}\omega(x_t,t)$,
+\begin{align}
+J(x_t;x_0)=\text{exp}[\omega(x_t,t)-\omega(x_0,0)]
+\end{align}
+and the phase space volume element evolve according to
+\begin{align}
+\text{exp}[-\omega(x_t,t)]dx_t=\text{exp}[-\omega(x_0,0)]dx_0
+\end{align}
+The equation constitutes a generalized Liouville theorem which implies a weighted phase space volume is conserved. So the phase space does not follow the usual laws of Euclidean geometry. The phase space volume can be denoted as $\sqrt{g(x)}dx$, where $g(x)$ is the determinant of a second-rank tensor $g_{ij}(x)$ known as the \textbf{metric tensor}.\\
+The Jacobian can be as a statement of the fact of the coordinate transformation $x_0\rightarrow x_t$
+\begin{align}
+J(x_t;x_0)=\frac{\sqrt{g(x_0,0)}}{\sqrt{g(x_t,t)}}
+\end{align}
+where
+\begin{align}
+\sqrt{g(x_t,t)}=e^{-\omega{x_t,t}}
+\end{align}
+The implication of the equation is that any phase space integral that represents an ensemble average should be performed using $\sqrt{g}$ as the volume element.
+\section{Generalization of the Liouville equation in non-Hamiltonian system}
+Assume a system interacting with its surroundings and possibly subject to driving force is described bt non-Hamiltonian microscopic equation of the form
+\begin{align}
+\dot{x}=\xi(x,t)
+\end{align}
+Consider an ensemble described by a distribution function $f:R^{n+1}\rightarrow R^1$, which is a function of $n$ coordinate and time $t$. A continuity equation for $f$ can be derived whose condition is that the rate if change of the number of ensemble members within volume $\Omega$ is balanced by the flux of members through the surface bounding $\Omega$, which is expressed mathematically as
+\begin{align}
+-\frac{d}{dt}\int_{\Omega}f(x,t)\sqrt{g(x,t)}dx&=\int_{\partial\Omega}\tilde{\sigma}\hat{n}\cdot \xi f\nonumber\\
+&=\int_{\Omega}\mathcal{L}_{\xi}(fg(x,t)dx)
+\end{align}
+where $\tilde{\sigma}$ is the surface $n-1$ form and $\hat{n}$ is the unit normal one-form to the surface. The surface integral has been converted to a volume integral via a generalization of the divergence theorem to manifolds with nontrivial metrics using Lie derivative $\mathcal{L}_{\xi}$ along the vector $\xi$.\\
+The equation hold independent of the choice of $\Omega$ and thus implies the local continuity condition
+\begin{align}
+\int_{\Omega}\bigg(\frac{\partial}{\partial t}+\mathcal{L}_{\xi}\bigg)(f(x,t)\sqrt{g(x,t)}dx)=0
+\end{align}
+To project the equation onto a coordinate basis, we first apply the Leibniz rule, $\mathcal{L}_{\xi}(f\sqrt{g}dx)=\sqrt{g}dx(\mathcal{L}_{\xi}f)+f\mathcal{L}_{\xi}(\sqrt{g}dx$, to the Lie derivative on the product. The action of the Lie derivative on the scalar and on the volume form is
+\begin{align}
+\mathcal{L}_{\xi}f&=\xi^i\frac{\partial f}{\partial x^i}\nonumber\\
+\mathcal{L}_{\xi}\epsilon_{i_1\cdots\i_n}&=\dot{x}^k\frac{\partial\sqrt{g}}{\partial x^k}\epsilon_{i_1\cdots\i_n}+\sqrt{g}\frac{\partial\xi^i}{\partial x^k}\epsilon_{i_1\cdots\i_n}
+\end{align}
+where the component representation of the wedge product is given by $\epsilon_{i_1\cdots\i_n}$, the Levi-Civita tensor.\\
+Combining he last two equations gives the general form for the continuity equation in an arbitrary coordinate basis
+\begin{align}
+\bigg[\frac{\partial}{\partial t}(f(x,t)\sqrt{g(x,t)})+\frac{\partial\xi^i}{\partial x^k}\bigg]dx&=0\\
+\frac{\partial}{\partial t}(f(x,t)\sqrt{g(x,t)})+\nabla\cdot(f(x,t)\sqrt{g(x,t)})&=0
+\end{align}
+According to equation (4) and (8), the phase space metric factor $\sqrt{g(x,t)}$ satisfies
+\begin{align}
+\frac{d}{dt}\sqrt{g(x,t)}=-\kappa(x,t)\sqrt{g(x,t)}
+\end{align}
+The last two equations lead to an equation for $f(x,t)$ alone
+\begin{align}
+\frac{\partial}{\partial t}f(x,t)+\xi(x,t)\cdot\nabla f(x,t)&=0\\
+\frac{d}{dt}f(x,t)&=0
+\end{align}
+In equilibrium, both $f(x_t.t)$ and $g(x_t,t)$ have no explicit time dependence.\\
+According to equation (7), we can obtain the generalized \textbf{Liouville equation}
+\begin{align}
+f(x_t,t)\sqrt{g(x_t,t)}dx_t=f(x_0,t)\sqrt{g(x_0,t)}dx_0
+\end{align}
+Suppose the dynamical equations processes a set of $n_c$ associated conservation laws or conserved quantities $\Lambda_k(x),k=1,\cdots,n_c$, which satisfies
+\begin{align*}
+\Lambda_k(x_t)-C_k&=0\\
+\frac{d\Lambda_k}{dt}&=0
+\end{align*}
+a general solution for $f(x)$ can be constructed in the form
+\begin{align}
+f(x)=\prod^{n_c}_{k=1}\delta(\Lambda_k(x)-C_k)
+\end{align}
+\section{Analysis of Different Algorithms}
+The microcanonical ensemble average of the function $F$ is denoted $F_{NVE}$, which is defined as
+\begin{align}
+F_{NVE}(N,V,E)\equiv [N!\Omega(N,V,E)]^{-1}\int_Vd\textbf{r}^N\int d\textbf{p}^N\delta[\mathscr{H}(\textbf{r}^N,\textbf{p}^N;V)-E]F(\textbf{r}^N,\textbf{p}^N;V)
+\end{align}
+where 
+\begin{align}
+\Omega(N,V,E)=(N!)^{-1}\int_Vd\textbf{r}^N\int d\textbf{p}^N\delta[\mathscr{H}(\textbf{r}^N,\textbf{p}^N;V)-E]
+\end{align}
+is the microcanonical ensemble partition function.\\
+The canonical ensemble partition function is
+\begin{align}
+Q(N,V,T)=(N!)^{-1}\int_Vd\textbf{r}^N\int d\textbf{p}^N \text{exp}\big[-\frac{\mathscr{H}(\textbf{r}^N,\textbf{p}^N;V)}{kT}\big]
+\end{align}
+The isothermal-isobaric ensemble partition function is
+\begin{align}
+\Delta(N,P,T)=(N!)^{-1}\int^{\infty}_0dV\int_Vd\textbf{r}^N\int d\textbf{p}^N \text{exp}\big[-\frac{PV+\mathscr{H}(\textbf{r}^N,\textbf{p}^N;V)}{kT}\big]
+\end{align}
+The isoenthalpic-isobaric ensemble partition function is
+\begin{align}
+\Gamma(N,P,H)=(N!)^{-1}\int^{\infty}_0 dV\int_Vd\textbf{r}^N\int d\textbf{p}^N\delta[\mathscr{H}(\textbf{r}^N,\textbf{p}^N;V)+PV-H]
+\end{align}
+\subsection{The Hoover Algorithm}
+Hoover introduced the equations of motion as follows
+\begin{align}
+\dot{r}_i&=\frac{p_i}{m_i}+\frac{p_{\epsilon}}{W}r_i\nonumber\\ 
+\dot{p}_i&=F_i-\frac{p_{\epsilon}}{W}p_i-\frac{p_{\xi}}{Q}p_i\nonumber\\
+\dot{V}&=\frac{Dp_{\epsilon}}{W}V\nonumber\\
+\dot{p_{\epsilon}}&=dV(P-P_{ext})-\frac{p_{\xi}}{Q}p_{\epsilon}\\
+\dot{\xi}&=\frac{p_{\xi}}{Q}\nonumber\\
+\dot{p_{\xi}}&=\sum^N_{i=1}\frac{p_i^2}{m_i}+\frac{p_{\epsilon}^2}{W}-(N_f+1)kT\nonumber
+\end{align}
+The compressibility of the equations is
+\begin{align}
+\kappa_{Hoover}&=\sum_{i=1}^N\bigg(\frac{\partial}{\partial r_i}\cdot\dot{r}_i+\frac{\partial}{\partial p_i}\cdot\dot{p}_i\bigg)+\frac{\partial}{\partial V}\dot{V}+\frac{\partial}{\partial p_{\epsilon}}\cdot\dot{p}_{\epsilon}\nonumber\\
+&=-\frac{(DN+1)p_{\xi}}{Q}+\frac{Dp_{\epsilon}}{W}\\
+&=-(DN+1)\dot{\xi}+D\dot{\epsilon}\nonumber
+\end{align}
+We can obtain the phase space metric 
+\begin{align}
+\sqrt{g_{Hoover}}=\frac{1}{V}e{DN+1}
+\end{align}
+
+\subsection{The MTK Algorithm}
+Martyna, Tobias and Klein introduced an algorithm which has been proved to yield a correct volume distribution.
+\end{document}
+
+
+

@@ -1,0 +1,21 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{mathrsfs}
+\title{Expression of Pressure }
+\author{Frank}
+\begin{document}
+\maketitle
+Since the kinetic energy is a universal term that appears in all Hamiltonian, we can introduce the configuration partition function
+\begin{align}
+Z(N,V,T)=\int_{D(V)}dr_1\cdots dr_Ne^{-\beta U(r_1\cdots r_N)}
+\end{align}
+And the pressure is
+\begin{align}
+P=kT\frac{\partial}{\partial V}lnQ(N.V,T)=\frac{kT}{Z(N.V,T)}\frac{\partial Z(N.V,T)}{\partial V}
+\end{align}
+It can be seen immediately that the volume dependence is contained in the integration limit, so that the volume differentiation cannot be easily performed. \\
+So we can introduce the scaled coordinates with the definition 
+\begin{align}
+s_i=\frac{1}{V^{1/3}}r_i
+\end{align}
+\end{document}

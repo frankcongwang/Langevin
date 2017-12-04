@@ -132,6 +132,18 @@ Hoover introduced the equations of motion as follows
 \dot{\xi}&=\frac{p_{\xi}}{Q}\nonumber\\
 \dot{p_{\xi}}&=\sum^N_{i=1}\frac{p_i^2}{m_i}+\frac{p_{\epsilon}^2}{W}-(N_f+1)kT\nonumber
 \end{align}
+When $\sum_{i=1}^NF_i=0$, there's an conserved energy
+\begin{align}
+H'=H(p,r)+\frac{p_{\epsilon}^2}{2W}+\frac{p_{\xi}^2}{2Q}+LkT\xi+P_{ext}V
+\end{align}
+additional momentum conservation law
+\begin{align}
+\bf{P}e^{\epsilon+\xi}=K
+\end{align}
+where $bf{P}=\sum_{i=1}^N$, for
+\begin{align}
+\frac{d}{dt}\bf{P}e^{\epsilon+\xi}&=\sum_{i=1}^N\bigg(-\frac{p_{\epsilon}}{W}p_i-\frac{p_{\xi}}{Q}p_i\bigg)+\bf{P}e^{\epsilon+\xi}\frac{Dp_{\epsilon}}{W}+\bf{P}e^{\epsilon+\xi}\frac{p_{\xi}}{Q}=0
+\end{align}
 The compressibility of the equations is
 \begin{align}
 \kappa_{Hoover}&=\sum_{i=1}^N\bigg(\frac{\partial}{\partial r_i}\cdot\dot{r}_i+\frac{\partial}{\partial p_i}\cdot\dot{p}_i\bigg)+\frac{\partial}{\partial V}\dot{V}+\frac{\partial}{\partial p_{\epsilon}}\cdot\dot{p}_{\epsilon}\nonumber\\
@@ -140,9 +152,14 @@ The compressibility of the equations is
 \end{align}
 We can obtain the phase space metric 
 \begin{align}
-\sqrt{g_{Hoover}}=\frac{1}{V}e{DN+1}
+\sqrt{g_{Hoover}}=\frac{1}{V}e^{DN+1}
 \end{align}
-
+Only taking the conserved energy into consideration, the partition function becomes
+\begin{align}
+\Omega_{T,P_{ext}}(N,E)=&\frac{e^{\beta E}}{LkT}\int dp_{\xi}e^{\beta p_{\xi}^2/2Q}\int dp_{\epsilon}e^{-\beta p_{\epsilon}^2/2W}\nonumber\\
+&\int dV\frac{1}{V}e^{-\beta P_{ext}V}\int d^Np\int d^Nre^{-\beta H(p,r)}
+\end{align}
+Due to the presence of the $\frac{1}{V}$ factor in the volume integration, the volume distribution is incorrect. The difficulty arises from the equations of motion don't have the desired compressibility.
 \subsection{The MTK Algorithm}
 Martyna, Tobias and Klein introduced an algorithm which has been proved to yield a correct volume distribution.
 \end{document}

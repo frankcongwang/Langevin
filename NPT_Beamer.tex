@@ -1,0 +1,284 @@
+\documentclass{beamer}
+%\usepackage{ctex}
+\usetheme{CambridgeUS}
+%\usepackage{CJK}
+\usepackage{pgf,pgfarrows,pgfnodes,pgfautomata,pgfheaps}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{caption,subcaption}
+\usepackage{rotating}
+\usepackage{multimedia}
+%\usepackage{multirow}
+\usepackage{mathrsfs}
+\fontsize{110pt}{21.6pt}\selectfont
+\begin{document}
+%%1-------------------------------------------------
+    \title{Constant Pressure Dynamics by extended system method}
+    \author{Wang Cong}
+    \institute{Beijing Normal University}
+    \date{\today}
+    \frame{\titlepage}
+
+%%2---------------------------------------
+\begin{frame}
+\frametitle{The expression of pressure}
+\fontsize{9pt}{10pt}\selectfont
+Since the kinetic energy is a universal term that appears in all Hamiltonian, we can introduce the configuration partition function
+\begin{align}
+Z(N,V,T)=\int_{D(V)}dr_1\cdots dr_Nexp\big[-\beta U(r_1,\cdot,r_N)\big]
+\end{align}
+And the pressure is
+\begin{align}
+P=kT\frac{\partial}{\partial V}lnQ(N,V,T)=\frac{kT}{Z(N,V,T)}\frac{\partial Z(N,V,T)}{\partial V}
+\end{align}
+The volume dependence is contained in the integration limit, so that the volume differentiation cannot be easily performed. \\
+So we can introduce the scaled coordinates with the definition 
+\begin{align}
+s_i=\frac{1}{V^{1/3}}r_i
+\end{align}
+Perform the change of variables in $Z(N,V,T)$ yields
+\begin{align}
+Z(N,V,T)=V^N\int ds_1\cdots ds_Nexp\big[-\beta U(V^{1/3}s_1,\cdots,V^{1/3}s_N)\big]
+\end{align}
+\end{frame}
+%3------------------------------------------
+\begin{frame}
+\fontsize{9pt}{10pt}\selectfont
+Thus the pressure can be easily calculated as
+\begin{align}
+P&=\frac{kT}{Z(N,V,T)}\bigg\{\frac{N}{V}Z(N,V,T)-\sum_{i=1}^N\beta V^N\int ds_1\cdots ds_N\frac{1}{3V}\nonumber\\
+&\quad\bigg[V^{1/3}s_i\cdot\frac{\partial U}{\partial V^{1/3}s_i}\bigg]exp\big[-\beta U(V^{1/3}s_1,\cdots, V^{1/3}s_N)\big]\bigg\}\\
+&=\frac{kTN}{V}-\frac{1}{3V}\int dr_1\cdots dr_N\bigg[\sum_{i=1}^{N}r_i\cdot F_1\bigg]exp\big[-\beta U(r_1,\cdots, r_N)\big]\nonumber\\
+&=\frac{1}{3V}\bigg\langle\sum_{i=1}^{N}\bigg[\frac{p_i^2}{m_i}+r_i\cdot F_1\bigg]\bigg\rangle
+\end{align}
+The quantity in the angle bracket is an instantaneous estmator $\mathcal{P}(r,p)$ for the pressure
+\begin{align}
+\mathcal{P}(r,p)=\frac{1}{3V}\sum_{i=1}^{N}\bigg[\frac{p_i^2}{m_i}+r_i\cdot F_1\bigg]
+\end{align}
+If the potential has an explicit volume dependence, there would be an extra term in equation (5), and the result is modified to read
+\begin{align}
+\mathcal{P}(r,p)=\frac{1}{3V}\sum_{i=1}^{N}\bigg[\frac{p_i^2}{m_i}+r_i\cdot F_1\bigg]-\frac{\partial U}{\partial V}
+\end{align}
+\end{frame}
+%4------------------------------------------
+\begin{frame}
+\frametitle{Isobaric phase space distribution and partition function}
+\fontsize{9pt}{10pt}\selectfont
+Assume two system coupled to a common thermal reservoir so that each system is described by a canonical distribution at temperature $T$. System 2 act as a barostat whose number of particles and volume is much larger than system 1, respectively.\\
+If the volume of each system were fixed, the total canonical partition function would be
+\begin{align}
+Q(N,V,T)&=C_N\int dx_1dx_2e^{-\beta\mathscr{H}_1(x_1)+\mathscr{H}_2(x_2)}\nonumber\\
+&=g(N,N_1,N_2)C_{N_1}\int dx_1de^{-\beta\mathscr{H}_1(x_1)}C_{N_2}\int dx_2de^{-\beta\mathscr{H}_2(x_2)}
+\end{align}
+Where $g(N,N_1,N_2)$ is an overall  normalization constant.\\
+The canonical phase space distribution function $f(x)$  of combined system 1 and 2 is
+\begin{align}
+f(x)=\frac{C_Ne^{-\beta\mathscr{H}}}{Q(N,V,T)}
+\end{align}
+\end{frame}
+%5------------------------------------------
+\begin{frame}
+\fontsize{9pt}{10pt}\selectfont
+To determine the distribution function of system 1, we need to integrate over the phase space of system 2
+\begin{align}
+f_1(x_1,V_1)&=\frac{g(N,N_1,N_2)}{Q(N,V,T)}C_{N_1}de^{-\beta\mathscr{H}_1(x_1)}C_{N_2}\int dx_2de^{-\beta\mathscr{H}_2(x_2)}\nonumber\\
+&=\frac{Q_2(N-N_1,V-V_1,T)}{Q(N,V,T)}g(N,N_1,N_2)C_{N_1}de^{-\beta\mathscr{H}_1(x_1)}
+\end{align}
+Express the partition function in terms of Helmholtz free energies according to $Q(N,V,T)=e^{\beta A(N,V,T)}$,
+\begin{align}
+\frac{Q_2(N_2,V-V_1,T)}{Q(N,V,T)}=e^{\beta [A(N-N_1,V-V_1,T)-A(N,V,T)]}
+\end{align}
+Expand $A(N-N_1,V-V_1,T)$ to first order
+\begin{align}
+A(N-N_1,V-V_1,T)&\approx A(N,V,T)-N_1\Big(\frac{\partial A}{\partial N}\Big)\Big|_{N_1=0,V_1=0}-V_1\Big(\frac{\partial A}{\partial V}\Big)\Big|_{N_1=0,V_1=0}\nonumber\\
+&=A(N,V,T)-\mu N_1+PV_1
+\end{align}
+So
+\begin{align}
+f_1(x_1,V_1)=g(N,N_1,N_2)e^{\beta\mu N_1}e^{-\beta PV_1}e^{-\beta\mathscr{H}_1}
+\end{align}
+which means the distribution can of the system can be obtained.
+\end{frame}
+%6------------------------------------------
+\begin{frame}
+\fontsize{9pt}{10pt}\selectfont
+If we focus on the system and drop the extraneous "1" subscript, the equation can be rearranged as
+\begin{align}
+e^{-\beta\mu N}\int^{\infty}_0dV\int dxf(x,V)=I_N\int^{\infty}_0dV\int dxe^{-\beta[\mathscr{H}+pV]}
+\end{align}
+which defines the partition function of the isothermal-isobaric ensemble as
+\begin{align}
+\Delta(N,P,T)=I_N\int^{\infty}_0dV\int dxe^{-\beta[\mathscr{H}+pV]}
+\end{align}
+\end{frame}
+%7------------------------------------------
+\begin{frame}
+\frametitle{Coordinate transformation in phase space}
+\fontsize{9pt}{10pt}\selectfont
+Since the mapping function of the point $x_0$ to $x_t$ is one-to-one, the mapping is equivalent to a coordinate transformation on the phase space from initial phase space coordinate to final coordinate
+\begin{align}
+dx_t= Jdx_0
+\end{align}
+where $J$ is the Jacobian of the transformation and $J_{kl}=\frac{\partial x^k_t}{\partial x^l_0}$. The determinant of $J$ is named
+\begin{align}
+J(x_t;x_0)=det(J)
+\end{align}
+Since $J$ is diagonal, it has eigenvalue $\lambda_k$ and $ln(J)$ has eigenvalue $ln(\lambda)$, so
+\begin{align}
+e^{Tr[ln(J)]}=e^{\sum_kln(\lambda_k)}=\prod_k\lambda_k=det(J)
+\end{align}
+Then
+\begin{align}
+\frac{d}{dt}J(x_t;x_0)&=e^{Tr[ln(J)]}Tr\bigg[\frac{dJ}{dt}J^{-1}\bigg]=J(x_t;x_0)\sum_{k,l}\bigg[\frac{\partial\dot{x}^k_t}{\partial x^l_0}\frac{\partial x^l_0}{\partial x^k_0}\bigg]\nonumber\\
+&=J(x_t;x_0)\sum_k\frac{\partial\dot{x}^k_t}{\partial x^k_0}
+\end{align}
+\end{frame}
+%8------------------------------------------
+\begin{frame}
+\fontsize{9pt}{10pt}\selectfont
+For a system evolving under \textbf{Hamilton equation}, the phase space compressibility 
+\begin{align}
+\kappa(x_t,t)=\nabla\cdot x_t=\sum_k\frac{\partial\dot{x}^k_t}{\partial x^k_0}=0
+\end{align}
+The equation of motion for the Jacobian reduced to
+\begin{align}
+\frac{d}{dt}J(x_t;x_0)=0
+\end{align}
+This equation implies that the Jacobian is a constant at all time.\\ Since the initial value of $J(x_t;x_0)$ is 1, it remains 1 at all time. \\
+It implies that the phase space volume is a constant, which is known as the \textbf{Liouville's theorem}.
+\end{frame}
+%9------------------------------------------
+\begin{frame}
+\fontsize{9pt}{10pt}\selectfont
+For a \textbf{non-Hamilton system}, if there's a function $\omega(x_t,t)$ such that $\kappa(x_t,t)=\frac{d}{dt}\omega(x_t,t)$,
+\begin{align}
+J(x_t;x_0)=\text{exp}[\omega(x_t,t)-\omega(x_0,0)]
+\end{align}
+and the phase space volume element evolve according to
+\begin{align}
+\text{exp}[-\omega(x_t,t)]dx_t=\text{exp}[-\omega(x_0,0)]dx_0
+\end{align}
+The equation constitutes a \textbf{generalized Liouville theorem} which implies a weighted phase space volume is conserved which can be denoted as $\sqrt{g(x)}dx$, where $g(x)$ is the determinant of a second-rank tensor $g_{ij}(x)$ known as the \textbf{metric tensor}.\\
+The Jacobian can be as a statement of the fact of the coordinate transformation $x_0\rightarrow x_t$
+\begin{align}
+J(x_t;x_0)=\frac{\sqrt{g(x_0,0)}}{\sqrt{g(x_t,t)}}
+\end{align}
+where
+\begin{align}
+\sqrt{g(x_t,t)}=e^{-\omega{x_t,t}}
+\end{align}
+The implication of the equation is that any phase space integral that represents an ensemble average should be performed using $\sqrt{g}$ as the volume element.
+\end{frame}
+%10------------------------------------------
+\begin{frame}
+\frametitle{Generalization of the Liouville equation}
+\fontsize{9pt}{10pt}\selectfont
+Assume a system interacting with its surroundings and possibly subject to driving force is described bt non-Hamiltonian microscopic equation of the form
+\begin{align}
+\dot{x}=\xi(x,t)
+\end{align}
+Consider an ensemble described by a distribution function $f:R^{n+1}\rightarrow R^1$, which is a function of $n$ coordinate and time $t$. From a continuity equation we can obtain
+\begin{align}
+\frac{\partial}{\partial t}(f(x,t)\sqrt{g(x,t)})+\nabla\cdot(f(x,t)\sqrt{g(x,t)})&=0
+\end{align}
+According to last section, the phase space metric factor $\sqrt{g(x,t)}$ satisfies
+\begin{align}
+\frac{d}{dt}\sqrt{g(x,t)}=-\kappa(x,t)\sqrt{g(x,t)}
+\end{align}
+The last two equations lead to an equation for $f(x,t)$ alone
+\begin{align}
+\frac{\partial}{\partial t}f(x,t)+\xi(x,t)\cdot\nabla f(x,t)=0,\qquad
+\frac{d}{dt}f(x,t)=0
+\end{align}
+In equilibrium, both $f(x_t.t)$ and $g(x_t,t)$ have no explicit time dependence.
+\end{frame}
+%11------------------------------------------
+\begin{frame}
+\fontsize{9pt}{10pt}\selectfont
+According to equation (7), we can obtain the generalized \textbf{Liouville equation}
+\begin{align}
+f(x_t,t)\sqrt{g(x_t,t)}dx_t=f(x_0,t)\sqrt{g(x_0,t)}dx_0
+\end{align}
+Suppose the dynamical equations processes a set of $n_c$ associated conservation laws or conserved quantities $\Lambda_k(x),k=1,\cdots,n_c$, which satisfies
+\begin{align*}
+\Lambda_k(x_t)-C_k&=0\\
+\frac{d\Lambda_k}{dt}&=0
+\end{align*}
+a general solution for $f(x)$ can be constructed in the form
+\begin{align}
+f(x)=\prod^{n_c}_{k=1}\delta(\Lambda_k(x)-C_k)
+\end{align}
+\end{frame}
+%12------------------------------------------
+\begin{frame}
+\frametitle{The Hoover Algorithm}
+\fontsize{9pt}{10pt}\selectfont
+Hoover introduced the equations of motion as follows
+\begin{align}
+\dot{r}_i&=\frac{p_i}{m_i}+\frac{p_{\epsilon}}{W}r_i\qquad 
+\dot{p}_i=F_i-\frac{p_{\epsilon}}{W}p_i-\frac{p_{\xi}}{Q}p_i\nonumber\\
+\dot{V}&=\frac{Dp_{\epsilon}}{W}V\qquad
+\dot{p_{\epsilon}}=dV(P-P_{ext})-\frac{p_{\xi}}{Q}p_{\epsilon}\\
+\dot{\xi}&=\frac{p_{\xi}}{Q}\qquad
+\dot{p_{\xi}}=\sum^N_{i=1}\frac{p_i^2}{m_i}+\frac{p_{\epsilon}^2}{W}-(N_f+1)kT\nonumber
+\end{align}
+There's an conserved energy
+\begin{align}
+H'=H(p,r)+\frac{p_{\epsilon}^2}{2W}+\frac{p_{\xi}^2}{2Q}+LkT\xi+P_{ext}V
+\end{align}
+and when $\sum_{i=1}^NF_i=0$, an additional momentum conservation law $\quad \bf{P}e^{\epsilon+\xi}=K\quad$ for
+\begin{align}
+\frac{d}{dt}\bf{P}e^{\epsilon+\xi}&=\sum_{i=1}^N\bigg(-\frac{p_{\epsilon}}{W}p_i-\frac{p_{\xi}}{Q}p_i\bigg)+\bf{P}e^{\epsilon+\xi}\frac{Dp_{\epsilon}}{W}+\bf{P}e^{\epsilon+\xi}\frac{p_{\xi}}{Q}=0
+\end{align}
+\begin{thebibliography}{1}
+\beamertemplatearticlebibitems
+\bibitem{Hoover1985} William G. Hoover. Physical Review A 31, 1685 (1985).
+\end{thebibliography}
+\end{frame}
+%13------------------------------------------
+\begin{frame}
+\fontsize{9pt}{10pt}\selectfont
+The compressibility of the equations is
+\begin{align}
+\kappa_{Hoover}&=\sum_{i=1}^N\bigg(\frac{\partial}{\partial r_i}\cdot\dot{r}_i+\frac{\partial}{\partial p_i}\cdot\dot{p}_i\bigg)+\frac{\partial}{\partial V}\dot{V}+\frac{\partial}{\partial p_{\epsilon}}\cdot\dot{p}_{\epsilon}\nonumber\\
+&=-\frac{(DN+1)p_{\xi}}{Q}+\frac{Dp_{\epsilon}}{W}\\
+&=-(DN+1)\dot{\xi}+D\dot{\epsilon}\nonumber
+\end{align}
+We can obtain the phase space metric 
+\begin{align}
+\sqrt{g_{Hoover}}=\frac{1}{V}e^{(DN+1)\xi}
+\end{align}
+Only taking the conserved energy into consideration, the partition function becomes
+\begin{align}
+\Omega_{T,P_{ext}}(N,E)=&\frac{e^{\beta E}}{LkT}\int dp_{\xi}e^{\beta p_{\xi}^2/2Q}\int dp_{\epsilon}e^{-\beta p_{\epsilon}^2/2W}\nonumber\\
+&\int dV\frac{1}{V}e^{-\beta P_{ext}V}\int d^Np\int d^Nre^{-\beta H(p,r)}
+\end{align}
+Due to the presence of the $\frac{1}{V}$ factor in the volume integration, the volume distribution is incorrect. The difficulty arises from the equations of motion don't have the desired compressibility.
+\end{frame}
+%14------------------------------------------
+\begin{frame}
+\frametitle{The MTK Algorithm}
+\fontsize{9pt}{10pt}\selectfont
+Martyna, Tobias and Klein introduced an algorithm which has been proved to yield a correct volume distribution.
+\begin{align}
+\dot{r}_i&=\frac{p_i}{m_i}+\frac{p_{\epsilon}}{W}r_i\qquad
+\dot{p}_i=F_i-\bigg(1+\frac{D}{N_f}\bigg)\frac{p_{\epsilon}}{W}p_i-\frac{p_{\xi}}{Q}p_i\nonumber\\
+\dot{V}&=\frac{dp_{\epsilon}}{W}V\qquad
+\dot{p_{\epsilon}}=dV(P-P_{ext})+\frac{D}{N_f}\sum_{i=1}^{N}\frac{p_i^2}{m_i}-\frac{p_{\xi}}{Q}p_{\epsilon}\\
+\dot{\xi}&=\frac{p_{\xi}}{Q}\qquad
+\dot{p_{\xi}}=\sum^N_{i=1}\frac{p_i^2}{m_i}+\frac{p_{\epsilon}^2}{W}-(N_f+1)kT
+\end{align}
+Compared to Hoover's algorithm, this one add a term to yield an extra $-\frac{dp_\epsilon}{W}$ in the compressibility. \\The $p_\epsilon$ equation has been modified to ensure the energy conservation.\\
+Other thermostats with better behavior can replace the Nos\'{e}-Hoover thermostat.
+\begin{thebibliography}{2}
+\beamertemplatearticlebibitems
+\bibitem{Martyna1994} Glenn J. Martyna, Douglas J. Tobias and , and Michael L. Klein . The Journal of Chemical Physics 101, 4177 (1994).
+\end{thebibliography}
+\end{frame}
+%15-----------------------------------------------
+\begin{frame}
+\fontsize{20pt}{10pt}\selectfont
+Thank you for your attemtion!
+\end{frame}
+\end{document}

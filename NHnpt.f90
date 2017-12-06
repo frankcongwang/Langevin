@@ -1,15 +1,16 @@
 module init
   implicit none
   real(8), parameter :: kT = 1d0                       !needs to be modified
-  real(8), parameter :: h = 0.01d0                      !needs to be modified
+  real(8), parameter :: h = 0.05d0                      !needs to be modified
   real(8), parameter :: w = 1d0
   real(8), parameter :: m = 1d0
   real(8), parameter :: Mex = 18d0
-  real(8), parameter :: mQ = 1d0
-  real(8), parameter :: pressure_ex = 2d0
+  real(8), parameter :: pressure_ex = 1d0
   integer, parameter :: eqstep=1d2/h
   integer, parameter :: tsstep=1d3/h
   integer, parameter :: sample=20
+  integer, parameter :: Mtb=4   !or 6 the length of the NHC
+  real(8), parameter :: mQ(Mtb) = 1d0
   real(8), parameter :: pi=3.14159265358979d0
 end module init
 
@@ -32,17 +33,107 @@ subroutine calPressure(Pins,Vol,pl,Fl,rl,Fv)
   implicit none
   real(8) :: Pins, Vol, pl, Fl, rl, Fv
 !  real(8) :: 
-  Pins=1d0/Vol*(pl**2/m)+Fv !+rl*Fl
+  Pins=1d0/Vol*(pl**2/m)+Fv+rl*Fl
 end subroutine calPressure
+
+subroutine md(qn,pn,qv,pv,fn,fv,coe1,coe2,coe3,Pressure,qt,pt)
+        use init
+        implicit none
+        real(8) :: qn,pn,qv,pv,fn,fv,coe1,coe2,coe3,Pressure
+        real(8) :: qt(Mtb),pt(Mtb)
+        real(8) :: gt(Mtb)
+          pn = pn + 0.5d0*h*fn
+          qn = qn + 0.5d0*h*(pn/m)
+          qv=qv*coe3
+         
+          pt2= pt2+0.25d0*h*(pt1*pt1/mQ-kT)
+          coe2=exp(-0.125d0*h*pt2/mQ)
+          pt1= pt1*coe2
+          pt1= pt1+0.25d0*h*(pn*pn/m+pv*pv/Mex-2*kT)
+          pt1= pt1*coe2
+          qt1= qt1+ 0.5d0+h*pt1/mQ
+          qt2= qt2+ 0.5d0+h*pt2/mQ
+          coe1=exp( -0.25d0*h*pt1/mQ)
+          pv = pv* coe1
+          call calForcex(fn,qn,qv)
+          call calForceV(fv,qn,qv)
+          call calPressure(Pressure,qv,pn,fn,qn,fv)
+  !        write(*,*) Pressure
+          pv = pv+0.5d0*h*((pressure_ex-Pressure)*qv+pn**2/m)
+          pv = pv*coe1
+          pt1= pt1*coe2
+          pt1= pt1+0.25d0*h*(pn*pn/m+pv*pv/Mex-2*kT)
+          pt1= pt1*coe2
+          pt2= pt2+0.25d0*h*(pt1*pt1/mQ-kT)
+
+          coe1=exp( -0.25d0*h*pt1/mQ)
+          coe3=exp(0.5d0*h*pv/Mex)
+          pn = pn*coe1**4/(coe3**4)
+          qn = qn*coe3*coe3
+
+          pt2= pt2+0.25d0*h*(pt1*pt1/mQ-kT)
+          coe2=exp(-0.125d0*h*pt2/mQ)
+          pt1= pt1*coe2
+          pt1= pt1+0.25d0*h*(pn*pn/m+pv*pv/Mex-2*kT)
+          pt1= pt1*coe2
+          qt1= qt1+ 0.5d0+h*pt1/mQ
+          qt2= qt2+ 0.5d0+h*pt2/mQ
+          coe1=exp( -0.25d0*h*pt1/mQ)
+          pv = pv* coe1
+          call calForcex(fn,qn,qv)
+          call calForceV(fv,qn,qv)
+          call calPressure(Pressure,qv,pn,fn,qn,fv)
+  !        write(*,*) Pressure
+          pv = pv+0.5d0*h*((pressure_ex-Pressure)*qv+pn**2/m)
+          pv = pv*coe1
+          pt1= pt1*coe2
+          pt1= pt1+0.25d0*h*(pn*pn/m+pv*pv/Mex-2*kT)
+          pt1= pt1*coe2
+          pt2= pt2+0.25d0*h*(pt1*pt1/mQ-kT)
+
+
+          coe3=exp(0.5d0*h*pv/Mex)
+          qv=qv*coe3
+          qn = qn + 0.5d0*h*(pn/m)
+          call calForcex(fn,qn,qv)
+          call calForceV(fv,qn,qv)
+          call calPressure(Pressure,qv,pn,fn,qn,fv)
+          pn = pn + 0.5d0*h*fn
+  end subroutine
+
+  subroutine thermalstat
+        use init
+        implicit none
+        real(8) :: qn,pn,qv,pv,fn,fv,coe1,coe2,coe3,Pressure
+        real(8) :: qt(Mtb),pt(Mtb)
+        real(8) :: gt(Mtb)
+        integer :: i
+        gt(Mtb)= pt(Mtb-1)*pt(Mtb-1)/Mq(Mtb-1)-kT
+
+        pt(Mtb)=pt(Mtb)+0.5d0*h*gt(Mtb)
+
+        do i=1,Mtb-1
+          pt(Mtb-i)=pt(Mtb-i)*exp(-0.25d0*h*pt(Mtb-i+1))
+          if (Mtb-i==1) gt(Mtb-i)=pn*pn/m+pv*pv/Mex-kT
+          if (Mtb-i>1)  gt(Mtb-i)=pt(Mtb-i)*pt(Mtb-i)/Mq(Mtb-i)-kT
+
+          pt(Mtb-i)=pt(Mtb-i)*exp(-0.25d0*h*pt(Mtb-i+1))
+
+        end do
+        
+
+
+
 
 
 program molphys
   use init
   use random
   implicit none
-  real(8) :: rand, qn, pn, qv, pv, qt1, pt1, qt2, pt2, fn, fv, a, b, coe1, coe2, coe3, Pressure
+  real(8) :: rand, qn, pn, qv, pv, fn, fv, a, b, coe1, coe2, coe3, Pressure
+  real(8) :: qt(Mtb), pt(Mtb)
   real(8) :: gamma = 0.8d0
-  real(8) :: gammav = 1.0d0
+!  real(8) :: gammav = 1.0d0
   integer :: i, j
   real*8 :: eptmp, ektmp, ep(sample), ek(sample),pres(sample),ep_ave,ek_ave,pres_ave,ep_std,ek_std,pres_std
   real*8 :: cor_ep(tsstep/2),cor_ek(tsstep/2)
@@ -55,7 +146,7 @@ program molphys
     write(*,*) 'gamma=',gamma, 'dt=', h
 
     do j=1, sample
-       write(c,'(I2)') j
+       write(c,'(I2)') 
        write(*,*) 'Sample=', j
        open(33,file=trim('traj_'//adjustl(c)))
 
@@ -63,18 +154,16 @@ program molphys
        pn = rand-0.5d0
        call random_normal(rand)
        pv = rand-0.5d0
-       call random_normal(rand)
-       pt1= rand-0.5d0
-       call random_normal(rand)
-       pt2= rand-0.5d0
        call random_number(rand)
        qn = 1d0*(rand-0.5d0)
        call random_normal(rand)
        qv = 1d0+0.2d0*rand
-       call random_normal(rand)
-       qt1= 1d0*(rand-0.5d0)
-       call random_normal(rand)
-       qt2= 1d0*(rand-0.5d0)
+       do i=1,Mtb
+         call random_normal(rand)
+         qt(i)=rand-0.5d0
+         call random_normal(rand)
+         pt(i)=rand-0.5d0
+       end do
 
     !   write(*,*) 'sample=', j
     !      pause

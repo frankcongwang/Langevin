@@ -113,15 +113,42 @@ subroutine md(qn,pn,qv,pv,fn,fv,coe1,coe2,coe3,Pressure,qt,pt)
         pt(Mtb)=pt(Mtb)+0.5d0*h*gt(Mtb)
 
         do i=1,Mtb-1
-          pt(Mtb-i)=pt(Mtb-i)*exp(-0.25d0*h*pt(Mtb-i+1))
+          pt(Mtb-i)=pt(Mtb-i)*exp(-0.25d0*h*pt(Mtb-i+1)/Q(Mtb-i+1))
+
           if (Mtb-i==1) gt(Mtb-i)=pn*pn/m+pv*pv/Mex-kT
           if (Mtb-i>1)  gt(Mtb-i)=pt(Mtb-i)*pt(Mtb-i)/Mq(Mtb-i)-kT
 
-          pt(Mtb-i)=pt(Mtb-i)*exp(-0.25d0*h*pt(Mtb-i+1))
+          pt(Mtb-i)=pt(Mtb-i)*exp(-0.25d0*h*pt(Mtb-i+1)/Q(Mtb-i+1))
 
         end do
+        pv=pv*exp(-0.25d0*pt(1)/q(1))
+          call calForcex(fn,qn,qv)
+          call calForceV(fv,qn,qv)
+          call calPressure(Pressure,qv,pn,fn,qn,fv)
+        pv=pv+0.5d0*h*(qv*(Pressure-Pressure_ex)+pn*pn/m)
+        pv=pv*exp(-0.25d0*pt(1)/q(1))
+        pn=pn*exp(-0.5d0*h*(2.0d0*pv/Mex+pt(1)/Mq(1)))
         
+        qn=qn*exp(h*pv/Mex)
+        qv=qv*exp(h*pv/Mex)
+        do i=1,Mtb-1
+          pt(Mtb-i)=pt(Mtb-i)*exp(-0.25d0*h*pt(Mtb-i+1)/Q(Mtb-i+1))
 
+          if (Mtb-i==1) gt(Mtb-i)=pn*pn/m+pv*pv/Mex-kT
+          if (Mtb-i>1)  gt(Mtb-i)=pt(Mtb-i)*pt(Mtb-i)/Mq(Mtb-i)-kT
+
+          pt(Mtb-i)=pt(Mtb-i)*exp(-0.25d0*h*pt(Mtb-i+1)/Q(Mtb-i+1))
+
+        end do
+        pv=pv*exp(-0.25d0*pt(1)/q(1))
+          call calForcex(fn,qn,qv)
+          call calForceV(fv,qn,qv)
+          call calPressure(Pressure,qv,pn,fn,qn,fv)
+        pv=pv+0.5d0*h*(qv*(Pressure-Pressure_ex)+pn*pn/m)
+        pv=pv*exp(-0.25d0*pt(1)/q(1))
+        pn=pn*exp(-0.5d0*h*(2.0d0*pv/Mex+pt(1)/Mq(1)))
+
+end subroutine
 
 
 

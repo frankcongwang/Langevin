@@ -33,7 +33,7 @@ subroutine calPressure(Pins,Vol,ek,Fn,rn,Fv)
   implicit none
   real(8) :: Pins, Vol, ek, Fn, rn, Fv
 !  real(8) :: 
-  Pins=1d0/Vol*2.0d0*ek+Fv+rn*Fn
+  Pins=1d0/Vol*2.0d0*ek+Fv+(rl-(floor(rl/Vol+0.5d0)*Vol))*Fl
 end subroutine calPressure
 
 subroutine kEnergy(Ek,pn)
@@ -166,7 +166,7 @@ program molphys
          ek(j)  = ek(j) + ektmp/tsstep
          pres(j)=pres(j)+ Pressure/tsstep
 !         write(*,*) pn,qn,pv,qv,Pressure
-!         pause
+!       p  pause
                      write(33,'(I16,F16.8,F16.8,F16.8,F16.8)') i,eptmp,ektmp,Pressure,qv
            
        end do

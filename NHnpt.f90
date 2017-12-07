@@ -28,83 +28,39 @@ subroutine calForceV(fv, x, V)
   fv = -m*w**2*V/2/pi/pi*(1-cos(2*pi*x/V)-V*x*pi*log(V)*sin(2*pi*x/V))                        !needs to be modified
 end subroutine calForceV
 
-subroutine calPressure(Pins,Vol,pl,Fl,rl,Fv)
+subroutine calPressure(Pins,Vol,ek,Fn,rn,Fv)
   use init
   implicit none
-  real(8) :: Pins, Vol, pl, Fl, rl, Fv
+  real(8) :: Pins, Vol, ek, Fn, rn, Fv
 !  real(8) :: 
-  Pins=1d0/Vol*(pl**2/m)+Fv+rl*Fl
+  Pins=1d0/Vol*2.0d0*ek+Fv+rn*Fn
 end subroutine calPressure
 
-subroutine md(qn,pn,qv,pv,fn,fv,coe1,coe2,coe3,Pressure,qt,pt)
+subroutine kEnergy(Ek,pn)
         use init
         implicit none
-        real(8) :: qn,pn,qv,pv,fn,fv,coe1,coe2,coe3,Pressure
-        real(8) :: qt(Mtb),pt(Mtb)
-        real(8) :: gt(Mtb)
+        real(8) :: Ek, pn
+        Ek=pn*pn/2.0d0/m
+end subroutine
+
+subroutine MolecularDynamics(qn,pn,qv,pv,fn,fv,Pressure,ek)
+        use init
+        implicit none
+        real(8) :: qn,pn,qv,pv,fn,fv,Pressure,ek
           pn = pn + 0.5d0*h*fn
           qn = qn + 0.5d0*h*(pn/m)
-          qv=qv*coe3
-         
-          pt2= pt2+0.25d0*h*(pt1*pt1/mQ-kT)
-          coe2=exp(-0.125d0*h*pt2/mQ)
-          pt1= pt1*coe2
-          pt1= pt1+0.25d0*h*(pn*pn/m+pv*pv/Mex-2*kT)
-          pt1= pt1*coe2
-          qt1= qt1+ 0.5d0+h*pt1/mQ
-          qt2= qt2+ 0.5d0+h*pt2/mQ
-          coe1=exp( -0.25d0*h*pt1/mQ)
-          pv = pv* coe1
-          call calForcex(fn,qn,qv)
-          call calForceV(fv,qn,qv)
-          call calPressure(Pressure,qv,pn,fn,qn,fv)
-  !        write(*,*) Pressure
-          pv = pv+0.5d0*h*((pressure_ex-Pressure)*qv+pn**2/m)
-          pv = pv*coe1
-          pt1= pt1*coe2
-          pt1= pt1+0.25d0*h*(pn*pn/m+pv*pv/Mex-2*kT)
-          pt1= pt1*coe2
-          pt2= pt2+0.25d0*h*(pt1*pt1/mQ-kT)
-
-          coe1=exp( -0.25d0*h*pt1/mQ)
-          coe3=exp(0.5d0*h*pv/Mex)
-          pn = pn*coe1**4/(coe3**4)
-          qn = qn*coe3*coe3
-
-          pt2= pt2+0.25d0*h*(pt1*pt1/mQ-kT)
-          coe2=exp(-0.125d0*h*pt2/mQ)
-          pt1= pt1*coe2
-          pt1= pt1+0.25d0*h*(pn*pn/m+pv*pv/Mex-2*kT)
-          pt1= pt1*coe2
-          qt1= qt1+ 0.5d0+h*pt1/mQ
-          qt2= qt2+ 0.5d0+h*pt2/mQ
-          coe1=exp( -0.25d0*h*pt1/mQ)
-          pv = pv* coe1
-          call calForcex(fn,qn,qv)
-          call calForceV(fv,qn,qv)
-          call calPressure(Pressure,qv,pn,fn,qn,fv)
-  !        write(*,*) Pressure
-          pv = pv+0.5d0*h*((pressure_ex-Pressure)*qv+pn**2/m)
-          pv = pv*coe1
-          pt1= pt1*coe2
-          pt1= pt1+0.25d0*h*(pn*pn/m+pv*pv/Mex-2*kT)
-          pt1= pt1*coe2
-          pt2= pt2+0.25d0*h*(pt1*pt1/mQ-kT)
-
-
-          coe3=exp(0.5d0*h*pv/Mex)
-          qv=qv*coe3
+          call tbStat(qn,pn,qv,pv,Pressure,ek)
           qn = qn + 0.5d0*h*(pn/m)
           call calForcex(fn,qn,qv)
           call calForceV(fv,qn,qv)
-          call calPressure(Pressure,qv,pn,fn,qn,fv)
+          call calPressure(Pressure,qv,ek,fn,qn,fv)
           pn = pn + 0.5d0*h*fn
   end subroutine
 
-  subroutine thermalstat
+  subroutine tbStat(qn,pn,qv,pv,Pressure,ek)
         use init
         implicit none
-        real(8) :: qn,pn,qv,pv,fn,fv,coe1,coe2,coe3,Pressure
+        real(8) :: qn,pn,qv,pv,fn,fv,Pressure,ek
         real(8) :: qt(Mtb),pt(Mtb)
         real(8) :: gt(Mtb)
         integer :: i
@@ -115,7 +71,7 @@ subroutine md(qn,pn,qv,pv,fn,fv,coe1,coe2,coe3,Pressure,qt,pt)
         do i=1,Mtb-1
           pt(Mtb-i)=pt(Mtb-i)*exp(-0.25d0*h*pt(Mtb-i+1)/Q(Mtb-i+1))
 
-          if (Mtb-i==1) gt(Mtb-i)=pn*pn/m+pv*pv/Mex-kT
+          if (Mtb-i==1) gt(Mtb-i)=2.0d0*ek+pv*pv/Mex-kT !unchanged
           if (Mtb-i>1)  gt(Mtb-i)=pt(Mtb-i)*pt(Mtb-i)/Mq(Mtb-i)-kT
 
           pt(Mtb-i)=pt(Mtb-i)*exp(-0.25d0*h*pt(Mtb-i+1)/Q(Mtb-i+1))
@@ -124,29 +80,35 @@ subroutine md(qn,pn,qv,pv,fn,fv,coe1,coe2,coe3,Pressure,qt,pt)
         pv=pv*exp(-0.25d0*pt(1)/q(1))
           call calForcex(fn,qn,qv)
           call calForceV(fv,qn,qv)
-          call calPressure(Pressure,qv,pn,fn,qn,fv)
-        pv=pv+0.5d0*h*(qv*(Pressure-Pressure_ex)+pn*pn/m)
+          call calPressure(Pressure,qv,ek,fn,qn,fv)
+        pv=pv+0.5d0*h*(qv*(Pressure-Pressure_ex)+2.0d0*ek) !unchanged
         pv=pv*exp(-0.25d0*pt(1)/q(1))
-        pn=pn*exp(-0.5d0*h*(2.0d0*pv/Mex+pt(1)/Mq(1)))
+        pn=pn*exp(-h*(2.0d0*pv/Mex+pt(1)/Mq(1)))
         
         qn=qn*exp(h*pv/Mex)
         qv=qv*exp(h*pv/Mex)
-        do i=1,Mtb-1
-          pt(Mtb-i)=pt(Mtb-i)*exp(-0.25d0*h*pt(Mtb-i+1)/Q(Mtb-i+1))
-
-          if (Mtb-i==1) gt(Mtb-i)=pn*pn/m+pv*pv/Mex-kT
-          if (Mtb-i>1)  gt(Mtb-i)=pt(Mtb-i)*pt(Mtb-i)/Mq(Mtb-i)-kT
-
-          pt(Mtb-i)=pt(Mtb-i)*exp(-0.25d0*h*pt(Mtb-i+1)/Q(Mtb-i+1))
-
+        do i=1,Mtb
+          qt(i)=qt(i)+h*pt(i)
         end do
+
+        call kEnergy(ek,pn)
         pv=pv*exp(-0.25d0*pt(1)/q(1))
           call calForcex(fn,qn,qv)
           call calForceV(fv,qn,qv)
-          call calPressure(Pressure,qv,pn,fn,qn,fv)
-        pv=pv+0.5d0*h*(qv*(Pressure-Pressure_ex)+pn*pn/m)
+          call calPressure(Pressure,qv,ek,fn,qn,fv)
+        pv=pv+0.5d0*h*(qv*(Pressure-Pressure_ex)+2.0d0*ek)
         pv=pv*exp(-0.25d0*pt(1)/q(1))
-        pn=pn*exp(-0.5d0*h*(2.0d0*pv/Mex+pt(1)/Mq(1)))
+
+        gt(1)=2.0d0*ek+pv*pv/Mex-kT
+        do i=1,Mtb-1
+          pt(i)=pt(i)*exp(-0.25d0*h*pt(i+1)/Q(i+1))
+
+          if (i==1) gt(Mtb)= pt(Mtb-1)*pt(Mtb-1)/Mq(Mtb-1)-kT
+          if (Mtb-i>1)  gt(Mtb-i)=pt(Mtb-i)*pt(Mtb-i)/Mq(Mtb-i)-kT
+
+          pt(i)=pt(i)*exp(-0.25d0*h*pt(i+1)/Q(i+1))
+
+        end do
 
 end subroutine
 
@@ -194,69 +156,12 @@ program molphys
 
     !   write(*,*) 'sample=', j
     !      pause
-          coe3=exp(0.5d0*h*pv/Mex)
           call calForcex(fn,qn,qv)
+          call kEnergy(ektmp,pn)
        do i=1, eqstep
-          pn = pn + 0.5d0*h*fn
-          qn = qn + 0.5d0*h*(pn/m)
-          qv=qv*coe3
-         
-          pt2= pt2+0.25d0*h*(pt1*pt1/mQ-kT)
-          coe2=exp(-0.125d0*h*pt2/mQ)
-          pt1= pt1*coe2
-          pt1= pt1+0.25d0*h*(pn*pn/m+pv*pv/Mex-2*kT)
-          pt1= pt1*coe2
-          qt1= qt1+ 0.5d0+h*pt1/mQ
-          qt2= qt2+ 0.5d0+h*pt2/mQ
-          coe1=exp( -0.25d0*h*pt1/mQ)
-          pv = pv* coe1
-          call calForcex(fn,qn,qv)
-          call calForceV(fv,qn,qv)
-          call calPressure(Pressure,qv,pn,fn,qn,fv)
-  !        write(*,*) Pressure
-          pv = pv+0.5d0*h*((pressure_ex-Pressure)*qv+pn**2/m)
-          pv = pv*coe1
-          pt1= pt1*coe2
-          pt1= pt1+0.25d0*h*(pn*pn/m+pv*pv/Mex-2*kT)
-          pt1= pt1*coe2
-          pt2= pt2+0.25d0*h*(pt1*pt1/mQ-kT)
-
-          coe1=exp( -0.25d0*h*pt1/mQ)
-          coe3=exp(0.5d0*h*pv/Mex)
-          pn = pn*coe1**4/(coe3**4)
-          qn = qn*coe3*coe3
-
-          pt2= pt2+0.25d0*h*(pt1*pt1/mQ-kT)
-          coe2=exp(-0.125d0*h*pt2/mQ)
-          pt1= pt1*coe2
-          pt1= pt1+0.25d0*h*(pn*pn/m+pv*pv/Mex-2*kT)
-          pt1= pt1*coe2
-          qt1= qt1+ 0.5d0+h*pt1/mQ
-          qt2= qt2+ 0.5d0+h*pt2/mQ
-          coe1=exp( -0.25d0*h*pt1/mQ)
-          pv = pv* coe1
-          call calForcex(fn,qn,qv)
-          call calForceV(fv,qn,qv)
-          call calPressure(Pressure,qv,pn,fn,qn,fv)
-  !        write(*,*) Pressure
-          pv = pv+0.5d0*h*((pressure_ex-Pressure)*qv+pn**2/m)
-          pv = pv*coe1
-          pt1= pt1*coe2
-          pt1= pt1+0.25d0*h*(pn*pn/m+pv*pv/Mex-2*kT)
-          pt1= pt1*coe2
-          pt2= pt2+0.25d0*h*(pt1*pt1/mQ-kT)
-
-
-          coe3=exp(0.5d0*h*pv/Mex)
-          qv=qv*coe3
-          qn = qn + 0.5d0*h*(pn/m)
-          call calForcex(fn,qn,qv)
-          call calForceV(fv,qn,qv)
-          call calPressure(Pressure,qv,pn,fn,qn,fv)
-          pn = pn + 0.5d0*h*fn
-
+         call MolecularDynamics(qn,pn,qv,pv,fn,fv,Pressure,ektmp)
          eptmp = m*w**2*qv**2/4/pi**2*(1-cos(2*pi*qn/qv))       !needs to be modified
-         ektmp = 0.5*pn**2/m
+         call kEnergy(ektmp,pn)
          ep(j)  = ep(j) + eptmp/tsstep
          ek(j)  = ek(j) + ektmp/tsstep
          pres(j)=pres(j)+ Pressure/tsstep
@@ -267,66 +172,10 @@ program molphys
        end do
 
        do i=1, tsstep
-          pn = pn + 0.5d0*h*fn
-          qn = qn + 0.5d0*h*(pn/m)
-          qv=qv*coe3
-         
-          pt2= pt2+0.25d0*h*(pt1*pt1/mQ-kT)
-          coe2=exp(-0.125d0*h*pt2/mQ)
-          pt1= pt1*coe2
-          pt1= pt1+0.25d0*h*(pn*pn/m+pv*pv/Mex-2*kT)
-          pt1= pt1*coe2
-          qt1= qt1+ 0.5d0+h*pt1/mQ
-          qt2= qt2+ 0.5d0+h*pt2/mQ
-          coe1=exp( -0.25d0*h*pt1/mQ)
-          pv = pv* coe1
-          call calForcex(fn,qn,qv)
-          call calForceV(fv,qn,qv)
-          call calPressure(Pressure,qv,pn,fn,qn,fv)
-  !        write(*,*) Pressure
-          pv = pv+0.5d0*h*((pressure_ex-Pressure)*qv+pn**2/m)
-          pv = pv*coe1
-          pt1= pt1*coe2
-          pt1= pt1+0.25d0*h*(pn*pn/m+pv*pv/Mex-2*kT)
-          pt1= pt1*coe2
-          pt2= pt2+0.25d0*h*(pt1*pt1/mQ-kT)
-
-          coe1=exp( -0.25d0*h*pt1/mQ)
-          coe3=exp(0.5d0*h*pv/Mex)
-          pn = pn*coe1**4/(coe3**4)
-          qn = qn*coe3*coe3
-
-          pt2= pt2+0.25d0*h*(pt1*pt1/mQ-kT)
-          coe2=exp(-0.125d0*h*pt2/mQ)
-          pt1= pt1*coe2
-          pt1= pt1+0.25d0*h*(pn*pn/m+pv*pv/Mex-2*kT)
-          pt1= pt1*coe2
-          qt1= qt1+ 0.5d0+h*pt1/mQ
-          qt2= qt2+ 0.5d0+h*pt2/mQ
-          coe1=exp( -0.25d0*h*pt1/mQ)
-          pv = pv* coe1
-          call calForcex(fn,qn,qv)
-          call calForceV(fv,qn,qv)
-          call calPressure(Pressure,qv,pn,fn,qn,fv)
-  !        write(*,*) Pressure
-          pv = pv+0.5d0*h*((pressure_ex-Pressure)*qv+pn**2/m)
-          pv = pv*coe1
-          pt1= pt1*coe2
-          pt1= pt1+0.25d0*h*(pn*pn/m+pv*pv/Mex-2*kT)
-          pt1= pt1*coe2
-          pt2= pt2+0.25d0*h*(pt1*pt1/mQ-kT)
-
-
-          coe3=exp(0.5d0*h*pv/Mex)
-          qv=qv*coe3
-          qn = qn + 0.5d0*h*(pn/m)
-          call calForcex(fn,qn,qv)
-          call calForceV(fv,qn,qv)
-          call calPressure(Pressure,qv,pn,fn,qn,fv)
-          pn = pn + 0.5d0*h*fn
+         call MolecularDynamics(qn,pn,qv,pv,fn,fv,Pressure,ektmp)
 
          eptmp = m*w**2*qv**2/4/pi**2*(1-cos(2*pi*qn/qv))       !needs to be modified
-         ektmp = 0.5*pn**2/m
+         call kEnergy(ektmp,pn)
          ep(j)  = ep(j) + eptmp/tsstep
          ek(j)  = ek(j) + ektmp/tsstep
          pres(j)=pres(j)+ Pressure/tsstep
@@ -339,12 +188,6 @@ program molphys
              write(*,*) real(i)/real(tsstep)*100, '%'
              write(*,*) qn, pn
          end if
-         eptmp = m*w**2*qv**2/4/pi**2*(1-cos(2*pi*qn/qv))       !needs to be modified
-         ektmp = 0.5*pn**2/m
-         ep(j)  = ep(j) + eptmp/tsstep
-         ek(j)  = ek(j) + ektmp/tsstep
-         pres(j)=pres(j)+ Pressure/tsstep
-                     write(33,'(I16,F16.8,F16.8,F16.8,F16.8)') i,eptmp,ektmp,Pressure,qv
         enddo
       close(33)
    enddo

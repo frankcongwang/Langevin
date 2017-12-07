@@ -5,7 +5,7 @@ module init
   real(8), parameter :: w = 1d0
   real(8), parameter :: m = 1d0
   real(8), parameter :: Mex = 18d0
-  real(8), parameter :: pressure_ex = 1d0
+  real(8), parameter :: pressure_ex = 20d0
   integer, parameter :: eqstep=1d2/h
   integer, parameter :: tsstep=1d3/h
   integer, parameter :: sample=20
@@ -119,7 +119,7 @@ program molphys
   use init
   use random
   implicit none
-  real(8) :: rand, qn, pn, qv, pv, fn, fv, a, b, coe1, coe2, coe3, Pressure
+  real(8) :: rand, qn, pn, qv, pv, fn, fv, Pressure
   real(8) :: qt(Mtb), pt(Mtb)
   real(8) :: gamma = 0.8d0
 !  real(8) :: gammav = 1.0d0
@@ -135,21 +135,21 @@ program molphys
     write(*,*) 'gamma=',gamma, 'dt=', h
 
     do j=1, sample
-       write(c,'(I2)') 
+       write(c,'(I2)') j
        write(*,*) 'Sample=', j
        open(33,file=trim('traj_'//adjustl(c)))
-
+!read(*,*)
        call random_normal(rand)
-       pn = rand-0.5d0
+       pn = 0.5d0*(rand-0.5d0)
        call random_normal(rand)
-       pv = rand-0.5d0
+       pv = 0.1d0*(rand-0.5d0)
        call random_number(rand)
-       qn = 1d0*(rand-0.5d0)
+       qn = 0.3d0*(rand-0.5d0)
        call random_normal(rand)
-       qv = 1d0+0.2d0*rand
+       qv = 0.25d0 !0.5d0+0.05d0*rand
        do i=1,Mtb
          call random_normal(rand)
-         qt(i)=rand-0.5d0
+         qt(i)=0.5d0*(rand-0.5d0)
          call random_normal(rand)
          pt(i)=rand-0.5d0
        end do
@@ -162,9 +162,9 @@ program molphys
          call MolecularDynamics(qn,pn,qv,pv,fn,fv,Pressure,ektmp)
          eptmp = m*w**2*qv**2/4/pi**2*(1-cos(2*pi*qn/qv))       !needs to be modified
          call kEnergy(ektmp,pn)
-         ep(j)  = ep(j) + eptmp/tsstep
-         ek(j)  = ek(j) + ektmp/tsstep
-         pres(j)=pres(j)+ Pressure/tsstep
+!         ep(j)  = ep(j) + eptmp/tsstep
+!         ek(j)  = ek(j) + ektmp/tsstep
+!         pres(j)=pres(j)+ Pressure/tsstep
 !         write(*,*) pn,qn,pv,qv,Pressure
 !       p  pause
                      write(33,'(I16,F16.8,F16.8,F16.8,F16.8)') i,eptmp,ektmp,Pressure,qv
@@ -189,7 +189,7 @@ program molphys
              write(*,*) qn, pn
          end if
         enddo
-      close(33)
+        close(33)
    enddo
    ep_ave = sum(ep)/sample
    ep_std = sqrt(sum((ep-ep_ave)**2)/(sample-1)/sample)

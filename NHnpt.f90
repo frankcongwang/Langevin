@@ -33,7 +33,7 @@ subroutine calPressure(Pins,Vol,ek,Fn,rn,Fv)
   implicit none
   real(8) :: Pins, Vol, ek, Fn, rn, Fv
 !  real(8) :: 
-  Pins=1d0/Vol*2.0d0*ek+Fv+(rl-(floor(rl/Vol+0.5d0)*Vol))*Fl
+  Pins=1d0/Vol*2.0d0*ek+Fv+(rn-(floor(rn/Vol+0.5d0)*Vol))*Fn
 end subroutine calPressure
 
 subroutine kEnergy(Ek,pn)
@@ -69,20 +69,20 @@ subroutine MolecularDynamics(qn,pn,qv,pv,fn,fv,Pressure,ek)
         pt(Mtb)=pt(Mtb)+0.5d0*h*gt(Mtb)
 
         do i=1,Mtb-1
-          pt(Mtb-i)=pt(Mtb-i)*exp(-0.25d0*h*pt(Mtb-i+1)/Q(Mtb-i+1))
+          pt(Mtb-i)=pt(Mtb-i)*exp(-0.25d0*h*pt(Mtb-i+1)/Mq(Mtb-i+1))
 
           if (Mtb-i==1) gt(Mtb-i)=2.0d0*ek+pv*pv/Mex-kT !unchanged
           if (Mtb-i>1)  gt(Mtb-i)=pt(Mtb-i)*pt(Mtb-i)/Mq(Mtb-i)-kT
 
-          pt(Mtb-i)=pt(Mtb-i)*exp(-0.25d0*h*pt(Mtb-i+1)/Q(Mtb-i+1))
+          pt(Mtb-i)=pt(Mtb-i)*exp(-0.25d0*h*pt(Mtb-i+1)/Mq(Mtb-i+1))
 
         end do
-        pv=pv*exp(-0.25d0*pt(1)/q(1))
+        pv=pv*exp(-0.25d0*pt(1)/Mq(1))
           call calForcex(fn,qn,qv)
           call calForceV(fv,qn,qv)
           call calPressure(Pressure,qv,ek,fn,qn,fv)
         pv=pv+0.5d0*h*(qv*(Pressure-Pressure_ex)+2.0d0*ek) !unchanged
-        pv=pv*exp(-0.25d0*pt(1)/q(1))
+        pv=pv*exp(-0.25d0*pt(1)/Mq(1))
         pn=pn*exp(-h*(2.0d0*pv/Mex+pt(1)/Mq(1)))
         
         qn=qn*exp(h*pv/Mex)
@@ -92,21 +92,21 @@ subroutine MolecularDynamics(qn,pn,qv,pv,fn,fv,Pressure,ek)
         end do
 
         call kEnergy(ek,pn)
-        pv=pv*exp(-0.25d0*pt(1)/q(1))
+        pv=pv*exp(-0.25d0*pt(1)/Mq(1))
           call calForcex(fn,qn,qv)
           call calForceV(fv,qn,qv)
           call calPressure(Pressure,qv,ek,fn,qn,fv)
         pv=pv+0.5d0*h*(qv*(Pressure-Pressure_ex)+2.0d0*ek)
-        pv=pv*exp(-0.25d0*pt(1)/q(1))
+        pv=pv*exp(-0.25d0*pt(1)/Mq(1))
 
         gt(1)=2.0d0*ek+pv*pv/Mex-kT
         do i=1,Mtb-1
-          pt(i)=pt(i)*exp(-0.25d0*h*pt(i+1)/Q(i+1))
+          pt(i)=pt(i)*exp(-0.25d0*h*pt(i+1)/Mq(i+1))
 
           if (i==1) gt(Mtb)= pt(Mtb-1)*pt(Mtb-1)/Mq(Mtb-1)-kT
           if (Mtb-i>1)  gt(Mtb-i)=pt(Mtb-i)*pt(Mtb-i)/Mq(Mtb-i)-kT
 
-          pt(i)=pt(i)*exp(-0.25d0*h*pt(i+1)/Q(i+1))
+          pt(i)=pt(i)*exp(-0.25d0*h*pt(i+1)/Mq(i+1))
 
         end do
 

@@ -25,7 +25,7 @@ subroutine calForceV(fv, x, V)
   use init
   implicit none
   real(8) :: fv, x, V
-  fv = -m*w**2*V/2/pi/pi*(1-cos(2*pi*x/V)-V*x*pi*log(V)*sin(2*pi*x/V))                        !needs to be modified
+  fv = -m*w**2*V/2/pi/pi*(1-cos(2*pi*x/V)+V*x*pi*log(V)*sin(2*pi*x/V))                        !needs to be modified
 end subroutine calForceV
 
 subroutine calPressure(Pins,Vol,ek,Fn,rn,Fv)
@@ -33,7 +33,7 @@ subroutine calPressure(Pins,Vol,ek,Fn,rn,Fv)
   implicit none
   real(8) :: Pins, Vol, ek, Fn, rn, Fv
 !  real(8) :: 
-  Pins=1d0/Vol*2.0d0*ek+Fv+(rn-(floor(rn/Vol+0.5d0)*Vol))*Fn
+  Pins=1d0/Vol*2.0d0*ek+Fv+(rn-(floor(rn/Vol+0.5d0)*Vol))*Fn/Vol
 end subroutine calPressure
 
 subroutine kEnergy(Ek,pn)

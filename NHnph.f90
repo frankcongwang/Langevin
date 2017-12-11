@@ -5,10 +5,10 @@ module init
   real(8), parameter :: w = 1d0
   real(8), parameter :: m = 1d0
   real(8), parameter :: Mex = 18d0
-  real(8), parameter :: pressure_ex = 1d0
+  real(8), parameter :: pressure_ex = 20d0
   integer, parameter :: eqstep=1d2/h
   integer, parameter :: tsstep=1d3/h
-  integer, parameter :: sample=2
+  integer, parameter :: sample=20
   integer, parameter :: Mtb=4   !or 6 the length of the NHC
   real(8), parameter :: mQ(Mtb) = 1d0
   real(8), parameter :: pi=3.14159265358979d0
@@ -66,51 +66,51 @@ subroutine MolecularDynamics(qn,pn,qv,pv,fn,fv,Pressure,enek)
         real(8) :: qt(Mtb),pt(Mtb)
         real(8) :: gt(Mtb)
         integer :: i
-        gt(Mtb)= pt(Mtb-1)*pt(Mtb-1)/Mq(Mtb-1)-kT
+!        gt(Mtb)= pt(Mtb-1)*pt(Mtb-1)/Mq(Mtb-1)-kT
 
-        pt(Mtb)=pt(Mtb)+0.5d0*h*gt(Mtb)
+!        pt(Mtb)=pt(Mtb)+0.5d0*h*gt(Mtb)
 
-        do i=1,Mtb-1
-          pt(Mtb-i)=pt(Mtb-i)*exp(-0.25d0*h*pt(Mtb-i+1)/Mq(Mtb-i+1))
-
-          if (Mtb-i==1) gt(Mtb-i)=2.0d0*enek+pv*pv/Mex-kT !unchanged
-          if (Mtb-i>1)  gt(Mtb-i)=pt(Mtb-i)*pt(Mtb-i)/Mq(Mtb-i)-kT
-
-          pt(Mtb-i)=pt(Mtb-i)*exp(-0.25d0*h*pt(Mtb-i+1)/Mq(Mtb-i+1))
-
-        end do
-        pv=pv*exp(-0.25d0*pt(1)/Mq(1))
-          call calForcex(fn,qn,qv)
-          call calForceV(fv,qn,qv)
-          call calPressure(Pressure,qv,enek,fn,qn,fv)
+!        do i=1,Mtb-1
+!          pt(Mtb-i)=pt(Mtb-i)*exp(-0.25d0*h*pt(Mtb-i+1)/Mq(Mtb-i+1))
+!
+!          if (Mtb-i==1) gt(Mtb-i)=2.0d0*enek+pv*pv/Mex-kT !unchanged
+!          if (Mtb-i>1)  gt(Mtb-i)=pt(Mtb-i)*pt(Mtb-i)/Mq(Mtb-i)-kT
+!
+!          pt(Mtb-i)=pt(Mtb-i)*exp(-0.25d0*h*pt(Mtb-i+1)/Mq(Mtb-i+1))
+!
+!        end do
+!        pv=pv*exp(-0.25d0*pt(1)/Mq(1))
+!          call calForcex(fn,qn,qv)
+!          call calForceV(fv,qn,qv)
+!          call calPressure(Pressure,qv,enek,fn,qn,fv)
         pv=pv+0.5d0*h*(qv*(Pressure-Pressure_ex)+2.0d0*enek) !unchanged
-        pv=pv*exp(-0.25d0*pt(1)/Mq(1))
-        pn=pn*exp(-h*(2.0d0*pv/Mex+pt(1)/Mq(1)))
+!        pv=pv*exp(-0.25d0*pt(1)/Mq(1))
+        pn=pn*exp(-h*2.0d0*pv/Mex) !+pt(1)/Mq(1)))
         
         qn=qn*exp(h*pv/Mex)
         qv=qv*exp(h*pv/Mex)
-        do i=1,Mtb
-          qt(i)=qt(i)+h*pt(i)
-        end do
-
+!        do i=1,Mtb
+!          qt(i)=qt(i)+h*pt(i)
+!        end do
+!
         call kEnergy(enek,pn)
-        pv=pv*exp(-0.25d0*pt(1)/Mq(1))
+!        pv=pv*exp(-0.25d0*pt(1)/Mq(1))
           call calForcex(fn,qn,qv)
           call calForceV(fv,qn,qv)
           call calPressure(Pressure,qv,enek,fn,qn,fv)
         pv=pv+0.5d0*h*(qv*(Pressure-Pressure_ex)+2.0d0*enek)
-        pv=pv*exp(-0.25d0*pt(1)/Mq(1))
+!        pv=pv*exp(-0.25d0*pt(1)/Mq(1))
+!
+!        gt(1)=2.0d0*enek+pv*pv/Mex-kT
+!        do i=1,Mtb-1
+!          pt(i)=pt(i)*exp(-0.25d0*h*pt(i+1)/Mq(i+1))
+!
+!          if (i==1) gt(Mtb)= pt(Mtb-1)*pt(Mtb-1)/Mq(Mtb-1)-kT
+!          if (Mtb-i>1)  gt(Mtb-i)=pt(Mtb-i)*pt(Mtb-i)/Mq(Mtb-i)-kT
+!
+!          pt(i)=pt(i)*exp(-0.25d0*h*pt(i+1)/Mq(i+1))
 
-        gt(1)=2.0d0*enek+pv*pv/Mex-kT
-        do i=1,Mtb-1
-          pt(i)=pt(i)*exp(-0.25d0*h*pt(i+1)/Mq(i+1))
-
-          if (i==1) gt(Mtb)= pt(Mtb-1)*pt(Mtb-1)/Mq(Mtb-1)-kT
-          if (Mtb-i>1)  gt(Mtb-i)=pt(Mtb-i)*pt(Mtb-i)/Mq(Mtb-i)-kT
-
-          pt(i)=pt(i)*exp(-0.25d0*h*pt(i+1)/Mq(i+1))
-
-        end do
+!        end do
 
 end subroutine
 

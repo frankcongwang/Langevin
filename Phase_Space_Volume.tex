@@ -33,7 +33,7 @@ For a system evolving under Hamilton equation, the phase space compressibility $
 \frac{d}{dt}J(x_t;x_0)=0
 \end{align}
 This equation implies that the Jacobian is a constant at all time. Since the initial value of $J(x_t;x_0)$ is 1, it remains 1 at all time. It implies that the phase space volume is a constant, which is known as the Liouville's theorem.\\
-For a non-Hamilton system, If there's a function $\omega(x_t,t)$ such that $\kappa(x_t,t)=\frac{d}{dt}\omega(x_t,t)$,
+For a non-Hamilton system, if there's a function $\omega(x_t,t)$ such that $\kappa(x_t,t)=\frac{d}{dt}\omega(x_t,t)$,
 \begin{align}
 J(x_t;x_0)=\text{exp}[\omega(x_t,t)-\omega(x_0,0)]
 \end{align}
@@ -136,11 +136,11 @@ When $\sum_{i=1}^NF_i=0$, there's an conserved energy
 \begin{align}
 H'=H(p,r)+\frac{p_{\epsilon}^2}{2W}+\frac{p_{\xi}^2}{2Q}+LkT\xi+P_{ext}V
 \end{align}
-additional momentum conservation law
+and an additional momentum conservation law
 \begin{align}
 \bf{P}e^{\epsilon+\xi}=K
 \end{align}
-where $bf{P}=\sum_{i=1}^N$, for
+where $\bf{P}=\sum_{i=1}^N$, for
 \begin{align}
 \frac{d}{dt}\bf{P}e^{\epsilon+\xi}&=\sum_{i=1}^N\bigg(-\frac{p_{\epsilon}}{W}p_i-\frac{p_{\xi}}{Q}p_i\bigg)+\bf{P}e^{\epsilon+\xi}\frac{Dp_{\epsilon}}{W}+\bf{P}e^{\epsilon+\xi}\frac{p_{\xi}}{Q}=0
 \end{align}
@@ -162,6 +162,16 @@ Only taking the conserved energy into consideration, the partition function beco
 Due to the presence of the $\frac{1}{V}$ factor in the volume integration, the volume distribution is incorrect. The difficulty arises from the equations of motion don't have the desired compressibility.
 \subsection{The MTK Algorithm}
 Martyna, Tobias and Klein introduced an algorithm which has been proved to yield a correct volume distribution.
+\begin{align}
+\dot{r}_i&=\frac{p_i}{m_i}+\frac{p_{\epsilon}}{W}r_i\nonumber\\ 
+\dot{p}_i&=F_i-\bigg(1+\frac{D}{N_f}\bigg)\frac{p_{\epsilon}}{W}p_i-\frac{p_{\xi}}{Q}p_i\nonumber\\
+\dot{V}&=\frac{dp_{\epsilon}}{W}V\nonumber\\
+\dot{p_{\epsilon}}&=dV(P-P_{ext})+\frac{D}{N_f}\sum_{i=1}^{N}\frac{p_i^2}{m_i}-\frac{p_{\xi}}{Q}p_{\epsilon}\\
+\dot{\xi}&=\frac{p_{\xi}}{Q}\nonumber\\
+\dot{p_{\xi}}&=\sum^N_{i=1}\frac{p_i^2}{m_i}+\frac{p_{\epsilon}^2}{W}-(N_f+1)kT\nonumber
+\end{align}
+Compared to Hoover's algorithm, this one add a term to yield an extra$-\frac{dp_\epsilon}{W}$ in the compressibility. The $p_\epsilon$ equation has been modified to ensure the energy conservation.\\
+Other thermostat with better behavior can replace the Nos\'{e}-Hoover thermostat.
 \end{document}
 
 

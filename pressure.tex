@@ -7,15 +7,35 @@
 \maketitle
 Since the kinetic energy is a universal term that appears in all Hamiltonian, we can introduce the configuration partition function
 \begin{align}
-Z(N,V,T)=\int_{D(V)}dr_1\cdots dr_Ne^{-\beta U(r_1\cdots r_N)}
+Z(N,V,T)=\int_{D(V)}dr_1\cdots dr_Nexp\big[-\beta U(r_1\cdots r_N)\big]
 \end{align}
 And the pressure is
 \begin{align}
-P=kT\frac{\partial}{\partial V}lnQ(N.V,T)=\frac{kT}{Z(N.V,T)}\frac{\partial Z(N.V,T)}{\partial V}
+P=kT\frac{\partial}{\partial V}lnQ(N,V,T)=\frac{kT}{Z(N,V,T)}\frac{\partial Z(N,V,T)}{\partial V}
 \end{align}
 It can be seen immediately that the volume dependence is contained in the integration limit, so that the volume differentiation cannot be easily performed. \\
 So we can introduce the scaled coordinates with the definition 
 \begin{align}
 s_i=\frac{1}{V^{1/3}}r_i
+\end{align}
+Perform the change of variables in $Z(N,V,T)$ yields
+\begin{align}
+Z(N,V,T)=V^N\int ds_1\cdots ds_Nexp\big[-\beta U(V^{1/3}s_1\cdots V^{1/3}s_N)\big]
+\end{align}
+Thus the pressure can be easily calculated as
+\begin{align}
+P&=\frac{kT}{Z(N,V,T)}\bigg\{\frac{N}{V}Z(N,V,T)-\sum_{i=1}^N\beta V^N\int ds_1\cdots ds_N\frac{1}{3V}\nonumber\\
+&\quad\bigg[V^{1/3}s_i\cdot\frac{\partial U}{\partial V^{1/3}s_i}\bigg]exp\big[-\beta U(V^{1/3}s_1\cdots V^{1/3}s_N)\big]\bigg\}\\
+&=\frac{kTN}{V}-\frac{1}{3V}\int dr_1\cdots dr_N\bigg[\sum_{i=1}^{N}r_i\cdot F_1\bigg]exp\big[-\beta U(r_1\cdots r_N)\big]\nonumber\\
+&=\frac{kTN}{V}-\frac{1}{3V}\bigg\langle\sum_{i=1}^{N}r_i\cdot F_1\bigg\rangle\\
+&=\frac{1}{3V}\bigg\langle\sum_{i=1}^{N}\bigg[\frac{p_i^2}{m_i}+r_i\cdot F_1\bigg]\bigg\rangle
+\end{align}
+The quantity in the angle bracket is an instantaneous estmator $\mathcal{P}(r,p)$ for the pressure
+\begin{align}
+\mathcal{P}(r,p)=\frac{1}{3V}\sum_{i=1}^{N}\bigg[\frac{p_i^2}{m_i}+r_i\cdot F_1\bigg]
+\end{align}
+If the potential has an explicit volume dependence, there would be an extra term in equation (5), and the result is modified to read
+\begin{align}
+\mathcal{P}(r,p)=\frac{1}{3V}\sum_{i=1}^{N}\bigg[\frac{p_i^2}{m_i}+r_i\cdot F_1\bigg]-\frac{\partial U}{\partial V}
 \end{align}
 \end{document}

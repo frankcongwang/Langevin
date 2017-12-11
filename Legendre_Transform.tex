@@ -1,0 +1,30 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{mathrsfs}
+\title{Legendre Transform }
+\author{Frank}
+\begin{document}
+\maketitle
+If we specify the slope $s_0=g(x_0)=f'(x_0)$ and the y-intercept $b(x_0)$ at $x_0$, then $f(x_0)$ can be uniquely determined
+\begin{align}
+f(x_0)=f'(x_0)x_0+b(x_0)
+\end{align}
+Since it is valid for all $x_o$, it can be written generally in terms of $x$ as
+\begin{align}
+f(x)=f'(x)x+b(x)
+\end{align}
+Recognizing $x=g^{-1}(s)$ and assuming $s=g(x)$ exits and is one-to-one-mapping, it's clear that the function $b(g^{-1}(s))$, given by
+\begin{align}
+b(g^{-1}(s))=f(g^{-1}(x))-sg^{-1}(s)
+\end{align}
+contains the same information as the original $f(x)$ but expressed as a function of s instead of x.\\
+We call the function $\tilde{f}(s)=b(g^{-1}(s))$ the \textbf{Legendre transform} of $f(x)$.\\
+$\tilde{f}(s)$ can be written compactly as
+\begin{align}
+\tilde{f}(s)=f(x(s))-sx(s)
+\end{align}
+And for a function of $n$ valuables the Legendre transform of $f$ is
+\begin{align}
+\tilde{f}(s_1,...,s_n)=f(x_1(s_1,...,s_n),...,x_n(s_1,...,s_n))-\sum^n_{i=1}s_ix_i(s_1,...,s_n)
+\end{align}
+\end{document}

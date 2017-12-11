@@ -2,9 +2,120 @@
 \usepackage{amsmath}
 \usepackage{mathrsfs}
 \title{Constant pressure}
+\author{Frank}
 \begin{document}
+\maketitle
+\section{Isobatic phase space distribution and partition function}
+Assume two system coupled to a common thermal reservoir so that each system is described by a canonical distribution at temperature $T$. System 2 act as a barostat whose number of particles and volume is much larger than system 1, respectively.\\
+If the volume of each system were fixed, the total canonical partition function would be
+\begin{align}
+Q(N,V,T)&=C_N\int dx_1dx_2e^{-\beta\mathscr{H}_1(x_1)+\mathscr{H}_2(x_2)}\nonumber\\
+&=g(N,N_1,N_2)C_{N_1}\int dx_1de^{-\beta\mathscr{H}_1(x_1)}C_{N_2}int dx_2de^{-\beta\mathscr{H}_2(x_2)}
+\end{align}
+The canonical phase space distribution function $f(x)$  of combined system 1 and 2 is
+\begin{align}
+f(x)=\frac{C_Ne^{-\beta\mathscr{H}}}{Q(N,V,T)}
+\end{align}
+To determine the distribution function of system 1, we need to integrate over the phase space of system 2
+\begin{align}
+f_1(x_1,V_1)&=\frac{g(N,N_1,N_2)}{Q(N,V,T)}C_{N_1}de^{-\beta\mathscr{H}_1(x_1)}C_{N_2}\int dx_2de^{-\beta\mathscr{H}_2(x_2)}\nonumber\\
+&=\frac{Q_2(N-N_1,V-V_1,T)}{Q(N,V,T)}C_{N_1}de^{-\beta\mathscr{H}_1(x_1)}
+\end{align}
+Express the patition function in terms of Helmholtz free energies according to $Q(N,V,T)=e^{\beta A(N,V,T)}$,
+\begin{align}
+\frac{Q_2(N_2,V-V_1,T)}{Q(N,V,T)}=e^{\beta [A(N-N_1,V-V_1,T)-A(N,V,T)]}
+\end{align}
+Expand $A(N-N_1,V-V_1,T)$ to first order
+\begin{align}
+A(N-N_1,V-V_1,T)&\approx A(N,V,T)-N_1\Big(\frac{\partial A}{\partial N}\Big)\Big|_{N_1=0,V_1=0}-V_1\Big(\frac{\partial A}{\partial V}\Big)\Big|_{N_1=0,V_1=0}\nonumber\\
+&=A(N,V,T)-\mu N_1+PV_1
+\end{align}
+So
+\begin{align}
+f_1(x_1,V_1)=g(N,N_1,N_2)e^{\beta\mu N_1}e^{-\beta PV_1}e^{-\beta\mathscr{H}_1}
+\end{align}
+
+
+\section{Nos\'e-Hoover	From canonical ensemble to isothermal-isobaric}
+Nos\'e introduced a Hamiltonian
+\begin{align}
+H_{\text{Nos\'e}}=\Phi(q)+\sum\frac{p^2}{2ms^2}+(X+1)kT\text{ln}s+\frac{p_s^2}{2Q}
+\end{align}
+and the equations of motion from it is
+\begin{align}
+\dot{q}&=\frac{p}{ms^2}\nonumber\\
+\dot{p}&=F(q)\nonumber\\
+\dot{s}&=\frac{p}{Q}\\
+\dot{p}_s&=\sum\frac{p^2}{ms^3}-\frac{(X+1)kT}{s}\nonumber
+\end{align}
+The partition function of the ensemble is
+\begin{align}
+Q_{\text{Nos\'e}}=(N!)^{-1}\int dsdqdpdp_s\delta(H_{\text{Nos\'e}}-E)
+\end{align}
+The equations can be simplified by take $dt_{old}\equiv sdt'$
+\begin{align}
+\dot{q}&=\frac{p'}{ms}\nonumber\\
+\dot{p'}&=sF(q)\nonumber\\
+\dot{s}&=\frac{sp'_s}{Q}\\
+\dot{p'}_s&=\sum\frac{p'^2}{ms^2}-(X+1)kT\nonumber
+\end{align}
+The partition function of the ensemble becomes
+\begin{align}
+Q_{\text{Nos\'e}}=(N!)^{-1}\int dsdqdp'dp'_s\delta[
+\Phi(q)+\sum\frac{p^2}{2ms^2}+(X+1)kT\text{ln}s+\frac{p_s^2}{2Q}-E]
+\end{align}
+
+And with $\dot{q}$ we can get
+\begin{align}
+\ddot{q}&=\frac{\dot{p}}{ms}-\frac{p\dot{s}}{ms^2}\nonumber\\
+&=\frac{F(q)}{m}-\frac{pp_s}{Qms}\nonumber\\
+&= \frac{F(q)}{m}-\zeta\dot{q}
+\end{align}
+where the thermodynamics fiction coefficient is defined as
+\begin{align}
+\zeta\equiv\frac{p_s}{Q}
+\end{align}
+thus
+\begin{align}
+\dot{\zeta}=\frac{1}{Q}\big[\sum\frac{p^2}{ms^2}-(X+1)kT\big]
+\end{align}
+In order to get the equations of motion with $\zeta$ instead of $s$, we redefine $p\equiv m\dot{q}$ and obtain
+\begin{align}
+\dot{q}&=\frac{p}{m}\nonumber\\
+\dot{p}&=\frac{d}{dt}(m\dot{q})=F(q)-\zeta p\\
+\dot{\zeta}&=\frac{1}{Q}\big[\sum\frac{p^2}{ms^2}-(X+1)kT\big]\nonumber
+\end{align}
+If we introduce $x\equiv q/V^{1/D}$, the equations of motion become
+\begin{align}
+\dot{x}&=\frac{d}{dp}\big(\frac{q}{V^{1/D}}\big)=\frac{p}{mV^{1/D}}-\frac{\dot{\epsilon}}{D}x\nonumber\\
+\dot{p}&=F-\zeta p+\frac{\dot{\epsilon}}{D}p\nonumber\\
+\dot{\epsilon}&=\frac{\dot{V}}{DV}\\
+\ddot{\epsilon}&=\frac{d}{dt}\frac{\dot{V}}{DV}=\frac{\ddot{V}}{DV}-\frac{\dot{V}^2}{DV^2}=\frac{P-P_0}{DVM}-D\dot{\epsilon}\nonumber\\
+\dot{\zeta}&=\frac{1}{Q}\big[\sum\frac{p^2}{ms^2}-(X+1)kT\big]\nonumber
+\end{align}
+
+
+
 The microcanonical ensemble average of the function $F$ is denoted $F_{NVE}$, which is defined as
 \begin{align}
-F_{NVE}(N,V,E)\equiv [N!\Omega(N,V,E)]^{-1}\int_Vd\textbf{R}^N\int d\textbf{p}^N\delta[\mathscr{H}(\textbf{r}^N,\textbf{p}^N;V)-E]F(\textbf{r}^N,\textbf{p}^N;V)
+F_{NVE}(N,V,E)\equiv [N!\Omega(N,V,E)]^{-1}\int_Vd\textbf{r}^N\int d\textbf{p}^N\delta[\mathscr{H}(\textbf{r}^N,\textbf{p}^N;V)-E]F(\textbf{r}^N,\textbf{p}^N;V)
 \end{align}
+where 
+\begin{align}
+\Omega(N,V,E)=(N!)^{-1}\int_Vd\textbf{r}^N\int d\textbf{p}^N\delta[\mathscr{H}(\textbf{r}^N,\textbf{p}^N;V)-E]
+\end{align}
+is the microcanonical ensemble partition function.\\
+The canonical ensemble partition function is
+\begin{align}
+Q(N,V,T)=(N!)^{-1}\int_Vd\textbf{r}^N\int d\textbf{p}^N \text{exp}\big[-\frac{\mathscr{H}(\textbf{r}^N,\textbf{p}^N;V)}{kT}\big]
+\end{align}
+The isothermal-isobaric ensemble partition function is
+\begin{align}
+\Delta(N,P,T)=(N!)^{-1}\int^{\infty}_0dV\int_Vd\textbf{r}^N\int d\textbf{p}^N \text{exp}\big[-\frac{PV+\mathscr{H}(\textbf{r}^N,\textbf{p}^N;V)}{kT}\big]
+\end{align}
+The isoenthalpic-isobaric ensemble partition function is
+\begin{align}
+\Gamma(N,P,H)=(N!)^{-1}\int^{\infty}_0 dV\int_Vd\textbf{r}^N\int d\textbf{p}^N\delta[\mathscr{H}(\textbf{r}^N,\textbf{p}^N;V)+PV-H]
+\end{align}
+For any function $F(\textbf{r}^N,\textbf{p}^N;V)$
 \end{document}

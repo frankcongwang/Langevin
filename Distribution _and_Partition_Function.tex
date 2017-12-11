@@ -1,0 +1,46 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{mathrsfs}
+\title{Isobaric phase space distribution and partition function}
+\author{Frank}
+\begin{document}
+\maketitle
+Assume two system coupled to a common thermal reservoir so that each system is described by a canonical distribution at temperature $T$. System 2 act as a barostat whose number of particles and volume is much larger than system 1, respectively.\\
+If the volume of each system were fixed, the total canonical partition function would be
+\begin{align}
+Q(N,V,T)&=C_N\int dx_1dx_2e^{-\beta\mathscr{H}_1(x_1)+\mathscr{H}_2(x_2)}\nonumber\\
+&=g(N,N_1,N_2)C_{N_1}\int dx_1de^{-\beta\mathscr{H}_1(x_1)}C_{N_2}\int dx_2de^{-\beta\mathscr{H}_2(x_2)}
+\end{align}
+Where $g(N,N_1,N_2)$ is an overall  normalization constant.\\
+The canonical phase space distribution function $f(x)$  of combined system 1 and 2 is
+\begin{align}
+f(x)=\frac{C_Ne^{-\beta\mathscr{H}}}{Q(N,V,T)}
+\end{align}
+To determine the distribution function of system 1, we need to integrate over the phase space of system 2
+\begin{align}
+f_1(x_1,V_1)&=\frac{g(N,N_1,N_2)}{Q(N,V,T)}C_{N_1}de^{-\beta\mathscr{H}_1(x_1)}C_{N_2}\int dx_2de^{-\beta\mathscr{H}_2(x_2)}\nonumber\\
+&=\frac{Q_2(N-N_1,V-V_1,T)}{Q(N,V,T)}C_{N_1}de^{-\beta\mathscr{H}_1(x_1)}
+\end{align}
+Express the partition function in terms of Helmholtz free energies according to $Q(N,V,T)=e^{\beta A(N,V,T)}$,
+\begin{align}
+\frac{Q_2(N_2,V-V_1,T)}{Q(N,V,T)}=e^{\beta [A(N-N_1,V-V_1,T)-A(N,V,T)]}
+\end{align}
+Expand $A(N-N_1,V-V_1,T)$ to first order
+\begin{align}
+A(N-N_1,V-V_1,T)&\approx A(N,V,T)-N_1\Big(\frac{\partial A}{\partial N}\Big)\Big|_{N_1=0,V_1=0}-V_1\Big(\frac{\partial A}{\partial V}\Big)\Big|_{N_1=0,V_1=0}\nonumber\\
+&=A(N,V,T)-\mu N_1+PV_1
+\end{align}
+So
+\begin{align}
+f_1(x_1,V_1)=g(N,N_1,N_2)e^{\beta\mu N_1}e^{-\beta PV_1}e^{-\beta\mathscr{H}_1}
+\end{align}
+which means the distribution can of the system can be obtained.
+If we focus on the system and drop the extraneous "1" subscript, the equation can be rearranged as
+\begin{align}
+e^{-\beta\mu N}\int^{\infty}_0dV\int dxf(x,V)=I_N\int^{\infty}_0dV\int dxe^{-\beta[\mathscr{H}+pV]}
+\end{align}
+which defines the partition function of the isothermal-isobaric ensemble as
+\begin{align}
+\Delta(N,P,T)==I_N\int^{\infty}_0dV\int dxe^{-\beta[\mathscr{H}+pV]}
+\end{align}
+\end{document}

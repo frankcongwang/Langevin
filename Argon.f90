@@ -37,9 +37,12 @@ subroutine Initial(qx,qy,qz)
           select case(k)
           case(1)
                   qx(Noa)=qx(Noa)+l/2.0d0
+                  qy(Noa)=qy(Noa)+l/2.0d0
           case(2)
                   qy(Noa)=qy(Noa)+l/2.0d0
+                  qz(Noa)=qz(Noa)+l/2.0d0
           case(3)
+                  qx(Noa)=qx(Noa)+l/2.0d0
                   qz(Noa)=qz(Noa)+l/2.0d0
           end select
   end subroutine

@@ -1,18 +1,50 @@
 module init
   implicit none
-  real(8), parameter :: kT = 1d0                       !needs to be modified
-  real(8), parameter :: h = 0.05d0                      !needs to be modified
-  real(8), parameter :: w = 1d0
-  real(8), parameter :: m = 1d0
-  real(8), parameter :: Mex = 180d0
+  real(8), parameter :: kT = 227.0d0/3.1577464d5                                                  !needs to be modified
+  real(8), parameter :: h = 5.0d0                      !needs to be modified
+  real(8), parameter :: sigma = 3.405d0/0.5291772d0
+  real(8), parameter :: m = 39.948d0
+  real(8), parameter :: Mex = 180d0*40d0
   real(8), parameter :: pressure_ex = 1d0
+  real(8), parameter :: initiallength=34.9826d0
+  integer, parameter :: Noa=864
   integer, parameter :: eqstep=1d2/h
   integer, parameter :: tsstep=1d3/h
   integer, parameter :: sample=2
   integer, parameter :: Mtb=4   !or 6 the length of the NHC
   real(8), parameter :: mQ(Mtb) = 1d0
   real(8), parameter :: pi=3.14159265358979d0
+  real(8), parameter :: rcut=2.5*sigma
 end module init
+
+subroutine Initial(qx,qy,qz)
+        use init
+        implicit none
+        real(8) :: qx(Noa), qy(Noa), qz(Noa)
+        integer :: period=6
+        integer :: i,j,k,m
+        real(8) :: l=initialength/period
+        do i=1,Noa
+          j=floor(Noa/4/period/period)
+          qz(Noa)=l*j
+          k=Noa-j*4*period*period
+          j=floor(k/4/period)
+          qy(Noa)=l*j
+          k=k-j*4*period
+          j=floor(k/4)
+          qx(Noa)=l*j
+          k=k-j*4
+          select case(k)
+          case(1)
+                  qx(Noa)=qx(Noa)+l/2.0d0
+          case(2)
+                  qy(Noa)=qy(Noa)+l/2.0d0
+          case(3)
+                  qz(Noa)=qz(Noa)+l/2.0d0
+          end select
+  end subroutine
+
+
 
 subroutine calForcex(fn, x, V)
   use init
@@ -49,7 +81,7 @@ subroutine MolecularDynamics(qn,pn,qv,pv,fn,fv,Pressure,enek)
         real(8) :: qn,pn,qv,pv,fn,fv,Pressure,enek
           pn = pn + 0.5d0*h*fn
           qn = qn + 0.5d0*h*(pn/m)
-          call tbStat(qn,pn,qv,pv,Pressure,enek)
+!          call tbStat(qn,pn,qv,pv,Pressure,enek)
           qn = qn + 0.5d0*h*(pn/m)
           call calForcex(fn,qn,qv)
           call calForceV(fv,qn,qv)
@@ -121,7 +153,9 @@ program main
   use init
   use random
   implicit none
-  real(8) :: rand, qn, pn, qv, pv, fn, fv, a, b, coe1, coe2, coe3, Pressure
+  real(8) :: rand, fn, fv, a, b, coe1, coe2, coe3, Pressure
+  real(8) :: qx(Noa), qy(Noa), qz(Noa), px(Noa), py(Noa), pz(Noa)
+  real(8) :: qv(3), pv(3)
   real(8) :: qt(Mtb), pt(Mtb)
   real(8) :: gamma = 0.8d0
 !  real(8) :: gammav = 1.0d0
@@ -131,6 +165,7 @@ program main
   real*8 :: t, cortimep, cortimek,cortimep_std,cortimek_std
   integer :: n!, ndt
   character(30) :: c
+  qv=34.9826d0
   open(22,file='result.maindat')
   ep(:)=0
   ek(:)=0
@@ -142,14 +177,12 @@ program main
        open(33,file=trim('traj_'//adjustl(c)))
        open(999,file=trim('note_'//adjustl(c)))
 
-       call random_normal(rand)
-       pn = 0.2d0*(rand-0.5d0)
+       call initial(qx,qy,qz)
        call random_normal(rand)
        pv = 0.0d0 !0.05d0*(rand-0.5d0)
-       call random_number(rand)
-       qn = 0.2d0*(rand-0.5d0)
        call random_normal(rand)
-       qv = 1.0d0 !1.5d0+0.05d0*rand
+       pn = 1.0d0 !1.5d0+0.05d0*rand
+       qv=initiallength
        do i=1,Mtb
          call random_normal(rand)
          qt(i)=0.2d0*(rand-0.5d0)

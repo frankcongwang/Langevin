@@ -3,6 +3,7 @@ module init
   real(8), parameter :: kT = 227.0d0/3.1577464d5                                                  !needs to be modified
   real(8), parameter :: h = 5.0d0                      !needs to be modified
   real(8), parameter :: sigma = 3.405d0/0.5291772d0
+  real(8), parameter :: epsl = 119.8d0/3.1577464d5
   real(8), parameter :: m = 39.948d0
   real(8), parameter :: Mex = 180d0*40d0
   real(8), parameter :: pressure_ex = 1d0
@@ -25,71 +26,89 @@ subroutine Initial(qx,qy,qz)
         integer :: i,j,k,m
         real(8) :: l=initialength/period
         do i=1,Noa
-          j=floor(Noa/4/period/period)
-          qz(Noa)=l*j
-          k=Noa-j*4*period*period
+          j=floor(i/4/period/period)
+          qz(i)=l*j
+          k=i-j*4*period*period
           j=floor(k/4/period)
-          qy(Noa)=l*j
+          qy(i)=l*j
           k=k-j*4*period
           j=floor(k/4)
-          qx(Noa)=l*j
+          qx(i)=l*j
           k=k-j*4
           select case(k)
           case(1)
-                  qx(Noa)=qx(Noa)+l/2.0d0
-                  qy(Noa)=qy(Noa)+l/2.0d0
+                  qx(i)=qx(i)+l/2.0d0
+                  qy(i)=qy(i)+l/2.0d0
           case(2)
-                  qy(Noa)=qy(Noa)+l/2.0d0
-                  qz(Noa)=qz(Noa)+l/2.0d0
+                  qy(i)=qy(i)+l/2.0d0
+                  qz(i)=qz(i)+l/2.0d0
           case(3)
-                  qx(Noa)=qx(Noa)+l/2.0d0
-                  qz(Noa)=qz(Noa)+l/2.0d0
+                  qx(i)=qx(i)+l/2.0d0
+                  qz(i)=qz(i)+l/2.0d0
           end select
   end subroutine
 
-
-
-subroutine calForcex(fn, x, V)
-  use init
-  implicit none
-  real(8) :: fn, x, V
-  fn = -m*w**2*V/2/pi*sin(2*pi*x/V)              !needs to be modified
-end subroutine calForcex
-
-subroutine calForceV(fv, x, V)
-  use init
-  implicit none
-  real(8) :: fv, x, V
-  fv = -m*w**2*V/2/pi/pi*(1-cos(2*pi*x/V)+V*x*pi*log(V)*sin(2*pi*x/V))                        !needs to be modified
-end subroutine calForceV
-
-subroutine calPressure(Pins,Vol,enek,Fn,rn,Fv)
-  use init
-  implicit none
-  real(8) :: Pins, Vol, enek, Fn, rn, Fv
-!  real(8) :: 
-  Pins=1d0/Vol*2.0d0*enek+(rn-(floor(rn/Vol+0.5d0)*Vol))*Fn/Vol+Fv
-end subroutine calPressure
-
-subroutine kEnergy(Ek,pn)
-        use init
+subroutine restrictCoord(qn,qv)
+        use unit
         implicit none
-        real(8) :: Ek, pn
-        Ek=pn*pn/2.0d0/m
+        real(8) :: qn(Noa,3),qv
+        integer :: i,j
+        do j=1,3
+        do i=1,Noa
+                if (qn(i,j)>=qv) qn(i,j)=qn(i,j)-qv
+                if (qn(i,j)<0.0d0) qn(i,j)=qn(i,j)+qv
+        end if
+        end if
 end subroutine
 
-subroutine MolecularDynamics(qn,pn,qv,pv,fn,fv,Pressure,enek)
+
+subroutine calPotential(Ep,rn)
+        use init
+        implicit none
+        real(8) :: Ep, rn
+        Ep=4.0d0*epsl*(sigma/rn)^12-(sigma/rn)^6
+end subroutine
+
+subroutine calKinetic(Ek,pn)
+        use init
+        implicit none
+        real(8) :: Ek, pn(Noa,3)
+        Ek=sum(pn(:,:)^2)/2.0d0/m
+end subroutine
+
+subroutine calForcex(fn, rn)
+  use init
+  implicit none
+  real(8) :: fn, rn
+  Fv=48.0d0*epsl*(sigma/rn)^11-6.0d0*(siama/rn)^5
+end subroutine calForcex
+
+subroutine calPressure(Pins,Vol,enek,Fn,rn)
+  use init
+  implicit none
+  real(8) :: Pins, Vol, enek, Fn, rn(Noa,3)
+  real(8) :: rc(3),virial
+  integer :: i
+  do i=1,3
+    rc(i)=sum(:,i)/Noa
+  end do
+
+  Pins=1d0/Vol*2.0d0*enek+(rn()*Fn/Vol
+end subroutine calPressure
+
+subroutine MolecularDynamics(qn,pn,qv,pv,fn,fv,Pressure,enEK)
         use init
         implicit none
         real(8) :: qn,pn,qv,pv,fn,fv,Pressure,enek
           pn = pn + 0.5d0*h*fn
           qn = qn + 0.5d0*h*(pn/m)
+          call restrictCoord(
 !          call tbStat(qn,pn,qv,pv,Pressure,enek)
           qn = qn + 0.5d0*h*(pn/m)
           call calForcex(fn,qn,qv)
           call calForceV(fv,qn,qv)
           pn = pn + 0.5d0*h*fn
-          call kEnergy(enek,pn)
+          call calKinetic(enek,pn)
           call calPressure(Pressure,qv,enek,fn,qn,fv)
   end subroutine
 
@@ -114,7 +133,7 @@ subroutine MolecularDynamics(qn,pn,qv,pv,fn,fv,Pressure,enek)
 
         end do
         pv=pv*exp(-0.25d0*pt(1)/Mq(1))
-        call kEnergy(enek,pn)
+        call calKinetic(enek,pn)
         call calForcex(fn,qn,qv)
         call calForceV(fv,qn,qv)
         call calPressure(Pressure,qv,enek,fn,qn,fv)
@@ -129,7 +148,7 @@ subroutine MolecularDynamics(qn,pn,qv,pv,fn,fv,Pressure,enek)
         end do
 
         pv=pv*exp(-0.25d0*pt(1)/Mq(1))
-        call kEnergy(enek,pn)
+        call calKinetic(enek,pn)
         call calForcex(fn,qn,qv)
         call calForceV(fv,qn,qv)
         call calPressure(Pressure,qv,enek,fn,qn,fv)
@@ -157,8 +176,8 @@ program main
   use random
   implicit none
   real(8) :: rand, fn, fv, a, b, coe1, coe2, coe3, Pressure
-  real(8) :: qx(Noa), qy(Noa), qz(Noa), px(Noa), py(Noa), pz(Noa)
-  real(8) :: qv(3), pv(3)
+  real(8) :: qn(Noa,3),pn(Noa,3)
+  real(8) :: qv, pv
   real(8) :: qt(Mtb), pt(Mtb)
   real(8) :: gamma = 0.8d0
 !  real(8) :: gammav = 1.0d0
@@ -180,17 +199,17 @@ program main
        open(33,file=trim('traj_'//adjustl(c)))
        open(999,file=trim('note_'//adjustl(c)))
 
-       call initial(qx,qy,qz)
+       call initial(qn(*,1),qn(*,2),qn(*,3))
        call random_normal(rand)
-       pv = 0.0d0 !0.05d0*(rand-0.5d0)
+       pv = sqrt(Mex*kT)*(rand-0.5d0)
        call random_normal(rand)
-       pn = 1.0d0 !1.5d0+0.05d0*rand
+       pn = sqrt(m*kT)*(rand-0.5d0)
        qv=initiallength
        do i=1,Mtb
          call random_normal(rand)
-         qt(i)=0.2d0*(rand-0.5d0)
+         qt(i)=sqrt(mQ(i))*(rand-0.5d0)
          call random_normal(rand)
-         pt(i)=0.2d0*(rand-0.5d0)
+         pt(i)=sqrt(mQ(i))*(rand-0.5d0)
        end do
 
     !   write(*,*) 'sample=', j

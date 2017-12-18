@@ -62,11 +62,21 @@ subroutine restrictCoord(qn,qv)
 end subroutine
 
 
-subroutine calPotential(Ep,rn)
+subroutine calPotential(Ep,qn)
         use init
         implicit none
-        real(8) :: Ep, rn
-        Ep=4.0d0*epsl*(sigma/rn)^12-(sigma/rn)^6
+        real(8) :: Ep, qn(Noa,3)
+        real(8) :: dist2
+        integer :: i,j
+        Ep=0.0d0
+        do i=1,Noa
+        do j=1,Noa
+          if (j<i) then
+                  dist2=sum((qn(i,:)-qn(j,:))**2)
+                  if (dist<rcut)   Ep=Ep+4.0d0*epsl*(sigma**2/dist2)**6-(sigma**2/dist2)**3
+          end if
+        end do
+        end do
 end subroutine
 
 subroutine calKinetic(Ek,pn)
@@ -76,11 +86,24 @@ subroutine calKinetic(Ek,pn)
         Ek=sum(pn(:,:)^2)/2.0d0/m
 end subroutine
 
-subroutine calForcex(fn, rn)
-  use init
-  implicit none
-  real(8) :: fn, rn
-  Fv=48.0d0*epsl*(sigma/rn)^11-6.0d0*(siama/rn)^5
+subroutine calForcex(fn, qn)
+        use init
+        implicit none
+        real(8) :: fn(Noa,3), qn(Noa,3)
+        real(8) :: dist2, force
+        integer :: i,j
+        fn=0.0d0
+        force=0.0d0
+        do i=1,Noa
+        do j=1,Noa
+          if (j<i) then
+                  dist2=sum((qn(i,:)-qn(j,:))**2)
+                  if (dist<rcut)   force=-24.0d0*epsl*((2*sigma**12/dist2**7)-(sigma**6/dist2**4))*(qn(j,:)-qn(i,:))
+                  fn(i,:)=fn(i,:)+force
+                  fn(j,:)=fn(j,:)-force
+          end if
+        end do
+        end do
 end subroutine calForcex
 
 subroutine calPressure(Pins,Vol,enek,Fn,rn)

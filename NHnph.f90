@@ -5,7 +5,7 @@ module init
   real(8), parameter :: w = 1d0
   real(8), parameter :: m = 1d0
   real(8), parameter :: Mex = 18d0
-  real(8), parameter :: pressure_ex = 20d0
+  real(8), parameter :: pressure_ex = 1d0
   integer, parameter :: eqstep=1d2/h
   integer, parameter :: tsstep=1d3/h
   integer, parameter :: sample=20
@@ -25,7 +25,7 @@ subroutine calForceV(fv, x, V)
   use init
   implicit none
   real(8) :: fv, x, V
-  fv = -m*w**2*V/2/pi/pi*(1-cos(2*pi*x/V)+V*x*pi*log(V)*sin(2*pi*x/V))                        !needs to be modified
+  fv = -m*w*w/2.0d0/pi*((1.0d0-cos(2*pi*x/V))*V/pi-x*sin(2*pi*x/V))                        !needs to be modified
 end subroutine calForceV
 
 subroutine calPressure(Pins,Vol,enek,Fn,rn,Fv)
@@ -33,7 +33,7 @@ subroutine calPressure(Pins,Vol,enek,Fn,rn,Fv)
   implicit none
   real(8) :: Pins, Vol, enek, Fn, rn, Fv
 !  real(8) :: 
-  Pins=1d0/Vol*2.0d0*enek+Fv+(rn-(floor(rn/Vol+0.5d0)*Vol))*Fn/Vol
+  Pins=1d0/Vol*2.0d0*enek+(rn-(floor(rn/Vol+0.5d0)*Vol))*Fn/Vol+Fv
 end subroutine calPressure
 
 subroutine kEnergy(Ek,pn)
@@ -48,18 +48,17 @@ subroutine MolecularDynamics(qn,pn,qv,pv,fn,fv,Pressure,enek)
         implicit none
         real(8) :: qn,pn,qv,pv,fn,fv,Pressure,enek
           pn = pn + 0.5d0*h*fn
-          call kEnergy(enek,pn)
           qn = qn + 0.5d0*h*(pn/m)
-          call tbStat(qn,pn,qv,pv,Pressure,enek)
+          call tbStat(qn,pn,qv,pv,fn,fv,Pressure,enek)
           qn = qn + 0.5d0*h*(pn/m)
           call calForcex(fn,qn,qv)
           call calForceV(fv,qn,qv)
-          call calPressure(Pressure,qv,enek,fn,qn,fv)
           pn = pn + 0.5d0*h*fn
           call kEnergy(enek,pn)
+          call calPressure(Pressure,qv,enek,fn,qn,fv)
   end subroutine
 
-  subroutine tbStat(qn,pn,qv,pv,Pressure,enek)
+  subroutine tbStat(qn,pn,qv,pv,fn,fv,Pressure,enek)
         use init
         implicit none
         real(8) :: qn,pn,qv,pv,fn,fv,Pressure,enek
@@ -80,9 +79,10 @@ subroutine MolecularDynamics(qn,pn,qv,pv,fn,fv,Pressure,enek)
 !
 !        end do
 !        pv=pv*exp(-0.25d0*pt(1)/Mq(1))
-!          call calForcex(fn,qn,qv)
-!          call calForceV(fv,qn,qv)
-!          call calPressure(Pressure,qv,enek,fn,qn,fv)
+          call kEnergy(enek,pn)
+          call calForcex(fn,qn,qv)
+          call calForceV(fv,qn,qv)
+          call calPressure(Pressure,qv,enek,fn,qn,fv)
         pv=pv+0.5d0*h*(qv*(Pressure-Pressure_ex)+2.0d0*enek) !unchanged
 !        pv=pv*exp(-0.25d0*pt(1)/Mq(1))
         pn=pn*exp(-h*2.0d0*pv/Mex) !+pt(1)/Mq(1)))
@@ -143,29 +143,28 @@ program main
        open(999,file=trim('note_'//adjustl(c)))
 
        call random_normal(rand)
-       pn = 0.5d0*(rand-0.5d0)
+       pn = sqrt(m*kT)*(rand-0.5d0)
        call random_normal(rand)
-       pv = 0.05d0*(rand-0.5d0)
+       pv = sqrt(Mex*kT)*(rand-0.5d0)
        call random_number(rand)
-       qn = 0.5d0*(rand-0.5d0)
+       qn = 0.2d0*(rand-0.5d0)
        call random_normal(rand)
-       qv = 1.5d0+0.05d0*rand
+       qv = 1.0d0+0.05d0*rand
        do i=1,Mtb
          call random_normal(rand)
-         qt(i)=0.2d0*(rand-0.5d0)
+         qt(i)=sqrt(mQ(i))*(rand-0.5d0)
          call random_normal(rand)
-         pt(i)=0.2d0*(rand-0.5d0)
+         pt(i)=sqrt(mQ(i))*(rand-0.5d0)
        end do
 
     !   write(*,*) 'sample=', j
     !      pause
           call calForcex(fn,qn,qv)
-          call kEnergy(ektmp,pn)
        do i=1, eqstep
          call MolecularDynamics(qn,pn,qv,pv,fn,fv,Pressure,ektmp)
          write(999,*) i,Pressure,fv,ektmp,(qn-(floor(qn/qv+0.5d0)*qv))*fn/qv
+!         write(999,*) i,qv,pv,qn,pn
          eptmp = m*w**2*qv**2/4/pi**2*(1-cos(2*pi*qn/qv))       !needs to be modified
-         call kEnergy(ektmp,pn)
          ep(j)  = ep(j) + eptmp/tsstep
          ek(j)  = ek(j) + ektmp/tsstep
          pres(j)=pres(j)+ Pressure/tsstep
@@ -177,9 +176,9 @@ program main
 
        do i=1, tsstep
          call MolecularDynamics(qn,pn,qv,pv,fn,fv,Pressure,ektmp)
+         write(999,*) i,Pressure,fv,ektmp,(qn-(floor(qn/qv+0.5d0)*qv))*fn/qv
 
          eptmp = m*w**2*qv**2/4/pi**2*(1-cos(2*pi*qn/qv))       !needs to be modified
-         call kEnergy(ektmp,pn)
          ep(j)  = ep(j) + eptmp/tsstep
          ek(j)  = ek(j) + ektmp/tsstep
          pres(j)=pres(j)+ Pressure/tsstep

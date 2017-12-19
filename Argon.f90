@@ -98,7 +98,7 @@ subroutine calForcex(fn, qn)
         do j=1,Noa
           if (j<i) then
                   dist2=sum((qn(i,:)-qn(j,:))**2)
-                  if (dist<rcut)   force=-24.0d0*epsl*((2*sigma**12/dist2**7)-(sigma**6/dist2**4))*(qn(j,:)-qn(i,:))
+                  if (dist<rcut) force=-24.0d0*epsl*((2*sigma**12/dist2**7)-(sigma**6/dist2**4))*(qn(j,:)-qn(i,:))
                   fn(i,:)=fn(i,:)+force
                   fn(j,:)=fn(j,:)-force
           end if
@@ -109,33 +109,37 @@ end subroutine calForcex
 subroutine calPressure(Pins,Vol,enek,Fn,rn)
   use init
   implicit none
-  real(8) :: Pins, Vol, enek, Fn, rn(Noa,3)
-  real(8) :: rc(3),virial
+  real(8) :: Pins, Vol, enek, Fn(Noa,3), qn(Noa,3)
+  real(8) :: qc(3),virial
   integer :: i
   do i=1,3
-    rc(i)=sum(:,i)/Noa
+    qc(i)=sum(qn(:,i))/Noa
   end do
-
-  Pins=1d0/Vol*2.0d0*enek+(rn()*Fn/Vol
+  virial=0.0d0
+  do i=1,Noa
+    virial=virial+sum((qn(i,:)-qc(:))*Fn(i,:))
+  end do
+  Pins=3.0d0/Vol*(2.0d0*enek+virial)
 end subroutine calPressure
 
-subroutine MolecularDynamics(qn,pn,qv,pv,fn,fv,Pressure,enEK)
+subroutine MolecularDynamics(qn,pn,qv,pv,fn,Pressure,enEK)
         use init
         implicit none
-        real(8) :: qn,pn,qv,pv,fn,fv,Pressure,enek
+        real(8) :: qn(Noa,3),pn(Noa,3),qv,pv,fn(Noa,3),Pressure,enek
           pn = pn + 0.5d0*h*fn
           qn = qn + 0.5d0*h*(pn/m)
-          call restrictCoord(
-!          call tbStat(qn,pn,qv,pv,Pressure,enek)
+          call restrictCoord(qn,qv)
+!          call tbStat(qn,pn,qv,pv,fn,fv,Pressure,enek)
           qn = qn + 0.5d0*h*(pn/m)
           call calForcex(fn,qn,qv)
           call calForceV(fv,qn,qv)
+          call restrictCoord(qn,qv)
           pn = pn + 0.5d0*h*fn
           call calKinetic(enek,pn)
           call calPressure(Pressure,qv,enek,fn,qn,fv)
   end subroutine
 
-  subroutine tbStat(qn,pn,qv,pv,Pressure,enek)
+  subroutine tbStat(qn,pn,qv,pv,fn,fv,Pressure,enek)
         use init
         implicit none
         real(8) :: qn,pn,qv,pv,fn,fv,Pressure,enek

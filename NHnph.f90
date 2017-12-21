@@ -1,6 +1,6 @@
 module init
   implicit none
-  real(8), parameter :: kT = 1d0                       !needs to be modified
+  real(8), parameter :: kT = 1d0/8d0                       !needs to be modified
   real(8), parameter :: h = 0.05d0                      !needs to be modified
   real(8), parameter :: w = 1d0
   real(8), parameter :: m = 1d0
@@ -25,7 +25,7 @@ subroutine calForceV(fv, x, V)
   use init
   implicit none
   real(8) :: fv, x, V
-  fv = -m*w*w/2.0d0/pi*((1.0d0-cos(2*pi*x/V))*V/pi-x*sin(2*pi*x/V))                        !needs to be modified
+  fv = -m*w*w/2.0d0/pi*((1.0d0-cos(2*pi*x/V))*V/pi-x*sin(2*pi*x/V))     !needs to be modified
 end subroutine calForceV
 
 subroutine calPressure(Pins,Vol,enek,Fn,rn,Fv)
@@ -94,7 +94,7 @@ subroutine MolecularDynamics(qn,pn,qv,pv,fn,fv,Pressure,enek)
 !        end do
 !
         call kEnergy(enek,pn)
-!        pv=pv*exp(-0.25d0*pt(1)/Mq(1))
+!        pv=pv*exp(-0.25d0*pt(1)0/Mq(1))
           call calForcex(fn,qn,qv)
           call calForceV(fv,qn,qv)
           call calPressure(Pressure,qv,enek,fn,qn,fv)
@@ -147,9 +147,9 @@ program main
        call random_normal(rand)
        pv = sqrt(Mex*kT)*(rand-0.5d0)
        call random_number(rand)
-       qn = 0.2d0*(rand-0.5d0)
+       qn = j*0.1d0!0.2d0*(rand-0.5d0)
        call random_normal(rand)
-       qv = 1.0d0+0.05d0*rand
+       qv = 1.0d0!+0.05d0*rand
        do i=1,Mtb
          call random_normal(rand)
          qt(i)=sqrt(mQ(i))*(rand-0.5d0)
@@ -162,7 +162,7 @@ program main
           call calForcex(fn,qn,qv)
        do i=1, eqstep
          call MolecularDynamics(qn,pn,qv,pv,fn,fv,Pressure,ektmp)
-         write(999,*) i,Pressure,fv,ektmp,(qn-(floor(qn/qv+0.5d0)*qv))*fn/qv
+         write(999,*) i,qn,fv,ektmp/qv,(qn-(floor(qn/qv+0.5d0)*qv))*fn/qv
 !         write(999,*) i,qv,pv,qn,pn
          eptmp = m*w**2*qv**2/4/pi**2*(1-cos(2*pi*qn/qv))       !needs to be modified
          ep(j)  = ep(j) + eptmp/tsstep
@@ -176,7 +176,7 @@ program main
 
        do i=1, tsstep
          call MolecularDynamics(qn,pn,qv,pv,fn,fv,Pressure,ektmp)
-         write(999,*) i,Pressure,fv,ektmp,(qn-(floor(qn/qv+0.5d0)*qv))*fn/qv
+         write(999,*) i,qn,fv,ektmp/qv,(qn-(floor(qn/qv+0.5d0)*qv))*fn/qv
 
          eptmp = m*w**2*qv**2/4/pi**2*(1-cos(2*pi*qn/qv))       !needs to be modified
          ep(j)  = ep(j) + eptmp/tsstep

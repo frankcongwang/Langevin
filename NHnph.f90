@@ -5,7 +5,7 @@ module init
   real(8), parameter :: w = 1d0
   real(8), parameter :: m = 1d0
   real(8), parameter :: Mex = 18d0
-  real(8), parameter :: pressure_ex = 1d0
+  real(8), parameter :: pressure_ex = 10d0
   integer, parameter :: eqstep=1d2/h
   integer, parameter :: tsstep=1d3/h
   integer, parameter :: sample=20
@@ -43,14 +43,28 @@ subroutine kEnergy(Ek,pn)
         Ek=pn*pn/2.0d0/m
 end subroutine
 
-subroutine MolecularDynamics(qn,pn,qv,pv,fn,fv,Pressure,enek)
+subroutine restrictCoord(qn,qv)
+        use init
+        implicit none
+        real(8) :: qn,qv
+        integer :: i,j
+                if (qn>=qv) qn=qn-qv
+                if (qn<0.0d0) qn=qn+qv
+end subroutine
+
+subroutine MolecularDynamics(qn,pn,qv,pv,fn,fv,Pressure,enek,i)
         use init
         implicit none
         real(8) :: qn,pn,qv,pv,fn,fv,Pressure,enek
+        integer :: i
           pn = pn + 0.5d0*h*fn
           qn = qn + 0.5d0*h*(pn/m)
-          call tbStat(qn,pn,qv,pv,fn,fv,Pressure,enek)
+          call restrictCoord(qn,qv)
+       !  if (mod(i, 10) .eq. 0) then
+       !   call tbStat(qn,pn,qv,pv,fn,fv,Pressure,enek)
+       !  end if
           qn = qn + 0.5d0*h*(pn/m)
+          call restrictCoord(qn,qv)
           call calForcex(fn,qn,qv)
           call calForceV(fv,qn,qv)
           pn = pn + 0.5d0*h*fn
@@ -88,6 +102,7 @@ subroutine MolecularDynamics(qn,pn,qv,pv,fn,fv,Pressure,enek)
         pn=pn*exp(-h*2.0d0*pv/Mex) !+pt(1)/Mq(1)))
         
         qn=qn*exp(h*pv/Mex)
+          call restrictCoord(qn,qv)
         qv=qv*exp(h*pv/Mex)
 !        do i=1,Mtb
 !          qt(i)=qt(i)+h*pt(i)
@@ -161,7 +176,7 @@ program main
     !      pause
           call calForcex(fn,qn,qv)
        do i=1, eqstep
-         call MolecularDynamics(qn,pn,qv,pv,fn,fv,Pressure,ektmp)
+         call MolecularDynamics(qn,pn,qv,pv,fn,fv,Pressure,ektmp,i)
          write(999,*) i,qn,fv,ektmp/qv,(qn-(floor(qn/qv+0.5d0)*qv))*fn/qv
 !         write(999,*) i,qv,pv,qn,pn
          eptmp = m*w**2*qv**2/4/pi**2*(1-cos(2*pi*qn/qv))       !needs to be modified
@@ -175,7 +190,7 @@ program main
        end do
 
        do i=1, tsstep
-         call MolecularDynamics(qn,pn,qv,pv,fn,fv,Pressure,ektmp)
+         call MolecularDynamics(qn,pn,qv,pv,fn,fv,Pressure,ektmp,i)
          write(999,*) i,qn,fv,ektmp/qv,(qn-(floor(qn/qv+0.5d0)*qv))*fn/qv
 
          eptmp = m*w**2*qv**2/4/pi**2*(1-cos(2*pi*qn/qv))       !needs to be modified

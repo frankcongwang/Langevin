@@ -1,16 +1,16 @@
 module init
   implicit none
   real(8), parameter :: kT = 227.0d0/3.1577464d5                                                  !needs to be modified
-  real(8), parameter :: h = 0.0050d0                      !needs to be modified
+  real(8), parameter :: h = 0.50d0                      !needs to be modified
   real(8), parameter :: sigma = 3.405d0/0.5291772d0
   real(8), parameter :: epsl = 119.8d0/3.1577464d5
   real(8), parameter :: m = 39.948d0
-  real(8), parameter :: Mex = 18d0*40d0
+  real(8), parameter :: Mex = 18d4
   real(8), parameter :: pressure_ex = 1d0
   real(8), parameter :: initiallength=34.9826d0
   integer, parameter :: Noa=864
-  integer, parameter :: eqstep=1d-2/h
-  integer, parameter :: tsstep=1d-3/h
+  integer, parameter :: eqstep=1d2/h
+  integer, parameter :: tsstep=1d3/h
   integer, parameter :: sample=2
   integer, parameter :: Mtb=4   !or 6 the length of the NHC
   real(8), parameter :: mQ(Mtb) = 1d0
@@ -74,7 +74,7 @@ subroutine calPotential(Ep,qn)
         do j=1,Noa
           if (j<i) then
                   dist2=sum((qn(i,:)-qn(j,:))**2)
-                  if (dist2<rcut2)   Ep=Ep+4.0d0*epsl*(sigma**2/dist2)**6-(sigma**2/dist2)**3;write(22,*) 1,j,Ep;read(*,*)
+                  if (dist2<rcut2)   Ep=Ep+4.0d0*epsl*(sigma**2/dist2)**6-(sigma**2/dist2)**3!;write(22,*) 1,j,Ep;read(*,*)
           end if
         end do
         end do
@@ -85,6 +85,7 @@ subroutine calKinetic(Ek,pn)
         implicit none
         real(8) :: Ek, pn(Noa,3)
         Ek=sum(pn(:,:)**2)/2.0d0/m
+        write (*,*) Ek
 end subroutine
 
 subroutine calForcex(fn, qn)
@@ -249,37 +250,37 @@ program main
     !   write(*,*) 'sample=', j
     !      pause
           call calForcex(fn,qn)
-       do i=1,Noa
-       write(22,*) fn(i,1),fn(i,2),fn(i,3)
-       end do
-      read(*,*) 
+!       do i=1,Noa
+!       write(22,*) fn(i,1),fn(i,2),fn(i,3)
+!       end do
+!      read(*,*) 
        do i=1, eqstep
          call MolecularDynamics(qn,pn,qv,pv,fn,Pressure,ektmp)
-         call calPotential(Ektmp,qn)
+         call calPotential(eptmp,qn)
          ep(j)  = ep(j) + eptmp/tsstep
          ek(j)  = ek(j) + ektmp/tsstep
          pres(j)=pres(j)+ Pressure/tsstep
          write(999,*) i,pn,qn,pv,qv
 !       p  pause
-                     write(33,'(I16,F16.8,F16.8,F16.8,F16.8)') i,eptmp,ektmp,Pressure,qv
+                     write(33,'(I16,E16.8,E16.8,E16.8,E16.8)') i,eptmp,ektmp,Pressure,ektmp+eptmp
            
        end do
 
        do i=1, tsstep
          call MolecularDynamics(qn,pn,qv,pv,fn,Pressure,ektmp)
 
-         call calPotential(Ektmp,qn)
+         call calPotential(eptmp,qn)
          ep(j)  = ep(j) + eptmp/tsstep
          ek(j)  = ek(j) + ektmp/tsstep
          pres(j)=pres(j)+ Pressure/tsstep
          write(999,*) i,pn,qn,pv,qv
 !         pause
-                     write(33,'(I16,F16.8,F16.8,F16.8,F16.8)') i,eptmp,ektmp,Pressure,qv
+                     write(33,'(I16,E16.8,E16.8,E16.8,E16.8)') i,eptmp,ektmp,Pressure,ektmp+eptmp
            
         
          if (mod(i, tsstep/10+1) .eq. 0) then
              write(*,*) real(i)/real(tsstep)*100, '%'
-             write(*,*) qn, pn
+   !          write(*,*) qn, pn
          end if
         end do
       close(33)

@@ -185,7 +185,7 @@ program main
          pres(j)=pres(j)+ Pressure/tsstep
 !         write(999,*) i,pn,qn,pv,qv
 !       p  pause
-                     write(33,'(I16,F16.8,F16.8,F16.8,F16.8)') i,eptmp,ektmp,Pressure,qv
+                     write(33,'(I16,F16.8,F16.8,F16.8,F16.8)') i,eptmp,ektmp,Pressure,eptmp+ektmp
            
        end do
 
@@ -199,7 +199,7 @@ program main
          pres(j)=pres(j)+ Pressure/tsstep
 !         write(999,*) i,pn,qn,pv,qv
 !         pause
-                     write(33,'(I16,F16.8,F16.8,F16.8,F16.8)') i,eptmp,ektmp,Pressure,qv
+                     write(33,'(I16,F16.8,F16.8,F16.8,F16.8)') i,eptmp,ektmp,Pressure,eptmp+ektmp
            
         
          if (mod(i, tsstep/10+1) .eq. 0) then

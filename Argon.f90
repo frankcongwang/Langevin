@@ -1,12 +1,12 @@
 module init
   implicit none
-  real(8), parameter :: kT = 227.0d0/3.1577464d5                                                  !needs to be modified
-  real(8), parameter :: h = 0.50d0                      !needs to be modified
+  real(8), parameter :: kT = 227.0d3/3.1577464d5                                                  !needs to be modified
+  real(8), parameter :: h = 0.050d0                      !needs to be modified
   real(8), parameter :: sigma = 3.405d0/0.5291772d0
   real(8), parameter :: epsl = 119.8d0/3.1577464d5
   real(8), parameter :: m = 39.948d0
   real(8), parameter :: Mex = 18d4
-  real(8), parameter :: pressure_ex = 1d0
+  real(8), parameter :: pressure_ex = 1d5
   real(8), parameter :: initiallength=34.9826d0
   integer, parameter :: Noa=864
   integer, parameter :: eqstep=1d2/h
@@ -63,10 +63,10 @@ subroutine restrictCoord(qn,qv)
 end subroutine
 
 
-subroutine calPotential(Ep,qn)
+subroutine calPotential(Ep,qn,qv)
         use init
         implicit none
-        real(8) :: Ep, qn(Noa,3)
+        real(8) :: Ep, qn(Noa,3),qv
         real(8) :: dist2
         integer :: i,j
         Ep=0.0d0
@@ -74,6 +74,7 @@ subroutine calPotential(Ep,qn)
         do j=1,Noa
           if (j<i) then
                   dist2=sum((qn(i,:)-qn(j,:))**2)
+                  if (dist2>=3*qv**2) write(*,*) "mmp"
                   if (dist2<rcut2)   Ep=Ep+4.0d0*epsl*(sigma**2/dist2)**6-(sigma**2/dist2)**3!;write(22,*) 1,j,Ep;read(*,*)
           end if
         end do
@@ -84,8 +85,8 @@ subroutine calKinetic(Ek,pn)
         use init
         implicit none
         real(8) :: Ek, pn(Noa,3)
+        Ek=0.0d0
         Ek=sum(pn(:,:)**2)/2.0d0/m
-        write (*,*) Ek
 end subroutine
 
 subroutine calForcex(fn, qn)
@@ -99,10 +100,14 @@ subroutine calForcex(fn, qn)
         do j=1,Noa
           if (j<i) then
                   dist2=sum((qn(i,:)-qn(j,:))**2)
-                  if (dist2<rcut2) force=-24.0d0*epsl*((2*sigma**12/dist2**7)-(sigma**6/dist2**4))*(qn(j,:)-qn(i,:))
-                  fn(i,:)=fn(i,:)+force
-                  fn(j,:)=fn(j,:)-force
+                  if (dist2<rcut2) then
+                          force=-24.0d0*epsl*((2*sigma**12/dist2**7)-(sigma**6/dist2**4))*(qn(j,:)-qn(i,:))
+                          fn(i,:)=fn(i,:)+force
+                          fn(j,:)=fn(j,:)-force
+                  end if
           end if
+                          write(*,*) fn(:,:)
+                          read(*,*)
         end do
         end do
 end subroutine calForcex
@@ -214,7 +219,6 @@ program main
   real*8 :: t, cortimep, cortimek,cortimep_std,cortimek_std
   integer :: n!, ndt
   character(30) :: c
-  qv=34.9826d0
   open(22,file='result.maindat')
   ep(:)=0
   ek(:)=0
@@ -256,7 +260,7 @@ program main
 !      read(*,*) 
        do i=1, eqstep
          call MolecularDynamics(qn,pn,qv,pv,fn,Pressure,ektmp)
-         call calPotential(eptmp,qn)
+         call calPotential(eptmp,qn,qv)
          ep(j)  = ep(j) + eptmp/tsstep
          ek(j)  = ek(j) + ektmp/tsstep
          pres(j)=pres(j)+ Pressure/tsstep
@@ -269,7 +273,7 @@ program main
        do i=1, tsstep
          call MolecularDynamics(qn,pn,qv,pv,fn,Pressure,ektmp)
 
-         call calPotential(eptmp,qn)
+         call calPotential(eptmp,qn,qv)
          ep(j)  = ep(j) + eptmp/tsstep
          ek(j)  = ek(j) + ektmp/tsstep
          pres(j)=pres(j)+ Pressure/tsstep
@@ -292,6 +296,10 @@ program main
    ek_std = sqrt(sum((ek-ek_ave)**2)/(sample-1)/sample)
    pres_ave=sum(pres)/sample
    pres_std=sqrt(sum((pres-pres_ave)**2)/(sample-1)/sample)
-   write(22,'(F8.2,F8.2,F16.8,F16.8,F16.8,F16.8)') h, ep_ave,ep_std,ek_ave,ek_std,pres_ave,pres_std
+!   write(22,'(F8.2,F8.2,F16.8,F16.8,F16.8,F16.8)') h, ep_ave,ep_std,ek_ave,ek_std,pres_ave,pres_std
+       do i=1,Noa
+       write(22,*) qn(i,1),qn(i,2),qn(i,3)
+       end do
+
 end program
 

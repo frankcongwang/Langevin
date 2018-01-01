@@ -1,16 +1,16 @@
 module init
   implicit none
   real(8), parameter :: kT = 227.0d3/3.1577464d5                                                  !needs to be modified
-  real(8), parameter :: h = 0.050d0                      !needs to be modified
+  real(8), parameter :: h = 0.50d0                      !needs to be modified
   real(8), parameter :: sigma = 3.405d0/0.5291772d0
   real(8), parameter :: epsl = 119.8d0/3.1577464d5
   real(8), parameter :: m = 39.948d0
   real(8), parameter :: Mex = 18d4
   real(8), parameter :: pressure_ex = 1d5
   real(8), parameter :: initiallength=34.9826d0
-  integer, parameter :: Noa=864
+  integer, parameter :: Noa=12
   integer, parameter :: eqstep=1d2/h
-  integer, parameter :: tsstep=1d3/h
+  integer, parameter :: tsstep=1d5/h
   integer, parameter :: sample=2
   integer, parameter :: Mtb=4   !or 6 the length of the NHC
   real(8), parameter :: mQ(Mtb) = 1d0
@@ -22,7 +22,7 @@ subroutine Initial(qx,qy,qz)
         use init
         implicit none
         real(8) :: qx(Noa), qy(Noa), qz(Noa)
-        integer,parameter :: period=6
+        integer,parameter :: period=2
         integer :: i,j,k
         real(8) :: l=initiallength/period
         do i=1,Noa
@@ -98,16 +98,15 @@ subroutine calForcex(fn, qn)
         fn=0.0d0
         do i=1,Noa
         do j=1,Noa
-          if (j<i) then
-                  dist2=sum((qn(i,:)-qn(j,:))**2)
-                  if (dist2<rcut2) then
-                          force=-24.0d0*epsl*((2*sigma**12/dist2**7)-(sigma**6/dist2**4))*(qn(j,:)-qn(i,:))
-                          fn(i,:)=fn(i,:)+force
-                          fn(j,:)=fn(j,:)-force
-                  end if
+          if (j>=i) exit
+          dist2=sum((qn(i,:)-qn(j,:))**2)
+          if (dist2<rcut2) then
+                  force=24.0d0*epsl*((2*sigma**12/dist2**7)-(sigma**6/dist2**4))*(qn(i,:)-qn(j,:))
+                  fn(i,:)=fn(i,:)+force
+                  fn(j,:)=fn(j,:)-force
+        !          write(*,*) fn(:,:)
+        !          read(*,*)
           end if
-                          write(*,*) fn(:,:)
-                          read(*,*)
         end do
         end do
 end subroutine calForcex
@@ -161,6 +160,7 @@ subroutine MolecularDynamics(qn,pn,qv,pv,fn,Pressure,enek)
 
           if (Mtb-i==1) gt(Mtb-i)=2.0d0*enek+pv*pv/Mex-kT !unchanged
           if (Mtb-i>1)  gt(Mtb-i)=pt(Mtb-i)*pt(Mtb-i)/Mq(Mtb-i)-kT
+          pt(Mtb-i)=pt(Mtb-i)+0.5d0*h*gt(Mtb-i)
 
           pt(Mtb-i)=pt(Mtb-i)*exp(-0.25d0*h*pt(Mtb-i+1)/Mq(Mtb-i+1))
 
@@ -193,6 +193,7 @@ subroutine MolecularDynamics(qn,pn,qv,pv,fn,Pressure,enek)
         do i=1,Mtb-1
           pt(i)=pt(i)*exp(-0.25d0*h*pt(i+1)/Mq(i+1))
 
+          pt(i)=pt(i)+0.5d0*h*gt(i)
           if (i==1) gt(Mtb)= pt(Mtb-1)*pt(Mtb-1)/Mq(Mtb-1)-kT
           if (Mtb-i>1)  gt(Mtb-i)=pt(Mtb-i)*pt(Mtb-i)/Mq(Mtb-i)-kT
 
@@ -232,7 +233,7 @@ program main
 
        call initial(qn(1,1),qn(1,2),qn(1,3))
        call random_normal(rand)
-       pv = sqrt(Mex*kT)*(rand-0.5d0)
+       pv = 0.0d0 !sqrt(Mex*kT)*(rand-0.5d0)
        do i=1,Noa
          do l=1,3
            call random_normal(rand)

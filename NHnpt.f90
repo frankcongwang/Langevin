@@ -1,10 +1,10 @@
 module init
   implicit none
   real(8), parameter :: kT = 1d0                       !needs to be modified
-  real(8), parameter :: h = 0.05d0                      !needs to be modified
+  real(8), parameter :: h = 0.5d0                      !needs to be modified
   real(8), parameter :: w = 1d0
   real(8), parameter :: m = 1d0
-  real(8), parameter :: Mex = 180d0
+  real(8), parameter :: Mex = 18d0
   real(8), parameter :: pressure_ex = 1d0
   integer, parameter :: eqstep=1d2/h
   integer, parameter :: tsstep=1d3/h
@@ -72,8 +72,9 @@ subroutine MolecularDynamics(qn,pn,qv,pv,fn,fv,Pressure,enek)
         do i=1,Mtb-1
           pt(Mtb-i)=pt(Mtb-i)*exp(-0.25d0*h*pt(Mtb-i+1)/Mq(Mtb-i+1))
 
-          if (Mtb-i==1) gt(Mtb-i)=2.0d0*enek+pv*pv/Mex-kT !unchanged
+          if (Mtb-i==1) gt(1)=2.0d0*enek+pv*pv/Mex-kT !unchanged
           if (Mtb-i>1)  gt(Mtb-i)=pt(Mtb-i)*pt(Mtb-i)/Mq(Mtb-i)-kT
+          pt(Mtb-i)=pt(Mtb-i)+0.5d0*h*gt(Mtb-i)
 
           pt(Mtb-i)=pt(Mtb-i)*exp(-0.25d0*h*pt(Mtb-i+1)/Mq(Mtb-i+1))
 
@@ -105,8 +106,9 @@ subroutine MolecularDynamics(qn,pn,qv,pv,fn,fv,Pressure,enek)
         do i=1,Mtb-1
           pt(i)=pt(i)*exp(-0.25d0*h*pt(i+1)/Mq(i+1))
 
-          if (i==1) gt(Mtb)= pt(Mtb-1)*pt(Mtb-1)/Mq(Mtb-1)-kT
-          if (Mtb-i>1)  gt(Mtb-i)=pt(Mtb-i)*pt(Mtb-i)/Mq(Mtb-i)-kT
+          pt(i)=pt(i)+0.5d0*h*gt(i)
+          if (i==1) gt(2)= pt(2)*pt(2)/Mq(2)-kT
+          if (i>1)  gt(i+1)=pt(i+1)*pt(i+1)/Mq(i+1)-kT
 
           pt(i)=pt(i)*exp(-0.25d0*h*pt(i+1)/Mq(i+1))
 
@@ -168,7 +170,7 @@ program main
          pres(j)=pres(j)+ Pressure/tsstep
          write(999,*) i,pn,qn,pv,qv
 !       p  pause
-                     write(33,'(I16,F16.8,F16.8,F16.8,F16.8)') i,eptmp,ektmp,Pressure,qv
+                     write(33,'(I16,F16.8,F16.8,F16.8,F16.8)') i,eptmp,ektmp,Pressure,eptmp+ektmp+Pressure*qv
            
        end do
 
@@ -181,7 +183,7 @@ program main
          pres(j)=pres(j)+ Pressure/tsstep
          write(999,*) i,pn,qn,pv,qv
 !         pause
-                     write(33,'(I16,F16.8,F16.8,F16.8,F16.8)') i,eptmp,ektmp,Pressure,qv
+                     write(33,'(I16,F16.8,F16.8,F16.8,F16.8)') i,eptmp,ektmp,Pressure,eptmp+ektmp+Pressure*qv
            
         
          if (mod(i, tsstep/10+1) .eq. 0) then

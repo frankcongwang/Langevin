@@ -111,10 +111,10 @@ subroutine calForcex(fn, qn)
         end do
 end subroutine calForcex
 
-subroutine calPressure(Pins,Vol,enek,Fn,qn)
+subroutine calPressure(Pins,qv,enek,Fn,qn)
   use init
   implicit none
-  real(8) :: Pins, Vol, enek, Fn(Noa,3), qn(Noa,3)
+  real(8) :: Pins, qv, enek, Fn(Noa,3), qn(Noa,3)
   real(8) :: qc(3),virial
   integer :: i
   do i=1,3
@@ -124,7 +124,7 @@ subroutine calPressure(Pins,Vol,enek,Fn,qn)
   do i=1,Noa
     virial=virial+sum((qn(i,:)-qc(:))*Fn(i,:))
   end do
-  Pins=3.0d0/Vol*(2.0d0*enek+virial)
+  Pins=3.0d0/qv**3*(2.0d0*enek+virial)
 end subroutine calPressure
 
 subroutine MolecularDynamics(qn,pn,qv,pv,fn,Pressure,enek)
@@ -134,7 +134,7 @@ subroutine MolecularDynamics(qn,pn,qv,pv,fn,Pressure,enek)
           pn = pn + 0.5d0*h*fn
           qn = qn + 0.5d0*h*(pn/m)
           call restrictCoord(qn,qv)
-!          call tbStat(qn,pn,qv,pv,fn,Pressure,enek)
+!          call tbStat(qn,pn,qv,pv,fn,Pressure,enek,0.5d0*h)
           qn = qn + 0.5d0*h*(pn/m)
           call calForcex(fn,qn)
 !          call calForceV(fv,qn,qv)
@@ -144,25 +144,25 @@ subroutine MolecularDynamics(qn,pn,qv,pv,fn,Pressure,enek)
           call calPressure(Pressure,qv,enek,fn,qn)
   end subroutine
 
-  subroutine tbStat(qn,pn,qv,pv,fn,Pressure,enek)
+  subroutine tbStat(qn,pn,qv,pv,fn,Pressure,enek,dtstat)
         use init
         implicit none
-        real(8) :: qn(Noa,3),pn(Noa,3),qv,pv,fn(Noa,3),Pressure,enek
+        real(8) :: qn(Noa,3),pn(Noa,3),qv,pv,fn(Noa,3),Pressure,enek,dtstat
         real(8) :: qt(Mtb),pt(Mtb)
         real(8) :: gt(Mtb)
         integer :: i
         gt(Mtb)= pt(Mtb-1)*pt(Mtb-1)/Mq(Mtb-1)-kT
 
-        pt(Mtb)=pt(Mtb)+0.5d0*h*gt(Mtb)
+        pt(Mtb)=pt(Mtb)+0.5d0*dtstat*gt(Mtb)
 
         do i=1,Mtb-1
-          pt(Mtb-i)=pt(Mtb-i)*exp(-0.25d0*h*pt(Mtb-i+1)/Mq(Mtb-i+1))
+          pt(Mtb-i)=pt(Mtb-i)*exp(-0.25d0*dtstat*pt(Mtb-i+1)/Mq(Mtb-i+1))
 
           if (Mtb-i==1) gt(Mtb-i)=2.0d0*enek+pv*pv/Mex-kT !unchanged
           if (Mtb-i>1)  gt(Mtb-i)=pt(Mtb-i)*pt(Mtb-i)/Mq(Mtb-i)-kT
-          pt(Mtb-i)=pt(Mtb-i)+0.5d0*h*gt(Mtb-i)
+          pt(Mtb-i)=pt(Mtb-i)+0.5d0*dtstat*gt(Mtb-i)
 
-          pt(Mtb-i)=pt(Mtb-i)*exp(-0.25d0*h*pt(Mtb-i+1)/Mq(Mtb-i+1))
+          pt(Mtb-i)=pt(Mtb-i)*exp(-0.25d0*dtstat*pt(Mtb-i+1)/Mq(Mtb-i+1))
 
         end do
         pv=pv*exp(-0.25d0*pt(1)/Mq(1))
@@ -170,15 +170,15 @@ subroutine MolecularDynamics(qn,pn,qv,pv,fn,Pressure,enek)
         call calForcex(fn,qn)
 !        call calForceV(fv,qn,qv)
         call calPressure(Pressure,qv,enek,fn,qn)
-        pv=pv+0.5d0*h*(qv*(Pressure-Pressure_ex)+2.0d0*enek) !unchanged
+        pv=pv+0.5d0*dtstat*(qv**3*(Pressure-Pressure_ex)+2.0d0*enek) !unchanged
         pv=pv*exp(-0.25d0*pt(1)/Mq(1))
-        pn=pn*exp(-h*(2.0d0*pv/Mex+pt(1)/Mq(1)))
+        pn=pn*exp(-dtstat*(2.0d0*pv/Mex+pt(1)/Mq(1)))
         
-        qn=qn*exp(h*pv/Mex)
-          call restrictCoord(qn,qv)
-        qv=qv*exp(h*pv/Mex)
+!        qn=qn*exp(dtstat*pv/Mex)
+!          call restrictCoord(qn,qv)
+        qv=qv*exp(dtstat*pv/Mex)
         do i=1,Mtb
-          qt(i)=qt(i)+h*pt(i)
+          qt(i)=qt(i)+dtstat*pt(i)
         end do
 
         pv=pv*exp(-0.25d0*pt(1)/Mq(1))
@@ -186,18 +186,18 @@ subroutine MolecularDynamics(qn,pn,qv,pv,fn,Pressure,enek)
         call calForcex(fn,qn)
 !        call calForceV(fv,qn,qv)
         call calPressure(Pressure,qv,enek,fn,qn)
-        pv=pv+0.5d0*h*(qv*(Pressure-Pressure_ex)+2.0d0*enek)
+        pv=pv+0.5d0*dtstat*(qv**3*(Pressure-Pressure_ex)+2.0d0*enek)
         pv=pv*exp(-0.25d0*pt(1)/Mq(1))
 
         gt(1)=2.0d0*enek+pv*pv/Mex-kT
         do i=1,Mtb-1
-          pt(i)=pt(i)*exp(-0.25d0*h*pt(i+1)/Mq(i+1))
+          pt(i)=pt(i)*exp(-0.25d0*dtstat*pt(i+1)/Mq(i+1))
 
-          pt(i)=pt(i)+0.5d0*h*gt(i)
+          pt(i)=pt(i)+0.5d0*dtstat*gt(i)
           if (i==1) gt(Mtb)= pt(Mtb-1)*pt(Mtb-1)/Mq(Mtb-1)-kT
           if (Mtb-i>1)  gt(Mtb-i)=pt(Mtb-i)*pt(Mtb-i)/Mq(Mtb-i)-kT
 
-          pt(i)=pt(i)*exp(-0.25d0*h*pt(i+1)/Mq(i+1))
+          pt(i)=pt(i)*exp(-0.25d0*dtstat*pt(i+1)/Mq(i+1))
 
         end do
 

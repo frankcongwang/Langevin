@@ -8,7 +8,7 @@ module init
   real(8), parameter :: Mex = 18d4
   real(8), parameter :: pressure_ex = 1d5
   real(8), parameter :: initiallength=34.9826d0
-  integer, parameter :: Noa=12
+  integer, parameter :: Noa=864
   integer, parameter :: eqstep=1d2/h
   integer, parameter :: tsstep=1d5/h
   integer, parameter :: sample=2
@@ -22,7 +22,7 @@ subroutine Initial(qx,qy,qz)
         use init
         implicit none
         real(8) :: qx(Noa), qy(Noa), qz(Noa)
-        integer,parameter :: period=2
+        integer,parameter :: period=6
         integer :: i,j,k
         real(8) :: l=initiallength/period
         do i=1,Noa
@@ -61,7 +61,35 @@ subroutine restrictCoord(qn,qv)
         end do
         end do
 end subroutine
+subroutine selectDist(x1,x2,qv,r)
+        use init
+        implicit none
+        real(8) x1,x2,qv,r
+        if (abs(x1-x2)<abs(x1-x2-qv)) then
+                r=abs(x1-x2)
+        else
+                r=abs(x1-x2-qv)
+        end if
+        if (r>abs(x1-x2+qv)) r=abs(x1-x2+qv)
+!        if (r>qv) then
+!                write(*,*) x1,x2,qv
+!                read(*,*)
+!        end if
+end subroutine
 
+subroutine calDist(q1,q2,qv,dist2)
+        use init
+        implicit none
+        real(8) :: q1(3),q2(3)
+        real(8) :: qv,dist2
+        real(8) :: rr(3)
+        integer :: i
+        do i=1,3
+          call selectDist(q1(i),q2(i),qv,rr(i))
+        end do
+        dist2=sum(rr(:)**2)
+                  if (dist2>=3*qv**2) write(*,*) "mmp"
+end subroutine
 
 subroutine calPotential(Ep,qn,qv)
         use init
@@ -73,8 +101,8 @@ subroutine calPotential(Ep,qn,qv)
         do i=1,Noa
         do j=1,Noa
           if (j<i) then
-                  dist2=sum((qn(i,:)-qn(j,:))**2)
-                  if (dist2>=3*qv**2) write(*,*) "mmp"
+                  call calDist(qn(i,:),qn(j,:),qv,dist2)
+!                  if (dist2>=3*qv**2) write(*,*) "mmp"
                   if (dist2<rcut2)   Ep=Ep+4.0d0*epsl*(sigma**2/dist2)**6-(sigma**2/dist2)**3!;write(22,*) 1,j,Ep;read(*,*)
           end if
         end do
@@ -89,19 +117,20 @@ subroutine calKinetic(Ek,pn)
         Ek=sum(pn(:,:)**2)/2.0d0/m
 end subroutine
 
-subroutine calForcex(fn, qn)
+subroutine calForcex(fn, qn,qv)
         use init
         implicit none
-        real(8) :: fn(Noa,3), qn(Noa,3)
+        real(8) :: fn(Noa,3), qn(Noa,3),qv
         real(8) :: dist2, force(3)
         integer :: i,j
         fn=0.0d0
         do i=1,Noa
         do j=1,Noa
           if (j>=i) exit
-          dist2=sum((qn(i,:)-qn(j,:))**2)
+                  call calDist(qn(i,:),qn(j,:),qv,dist2)
+!          dist2=sum((qn(i,:)-qn(j,:))**2)
           if (dist2<rcut2) then
-                  force=24.0d0*epsl*((2*sigma**12/dist2**7)-(sigma**6/dist2**4))*(qn(i,:)-qn(j,:))
+                  force=-24.0d0*epsl*((2*sigma**12/dist2**7)-(sigma**6/dist2**4))*(qn(i,:)-qn(j,:))
                   fn(i,:)=fn(i,:)+force
                   fn(j,:)=fn(j,:)-force
         !          write(*,*) fn(:,:)
@@ -132,12 +161,15 @@ subroutine MolecularDynamics(qn,pn,qv,pv,fn,Pressure,enek)
         implicit none
         real(8) :: qn(Noa,3),pn(Noa,3),qv,pv,fn(Noa,3),Pressure,enek
           pn = pn + 0.5d0*h*fn
+!        if (r>qv) then
+!                write(*,*) x1,x2,qv
+!                read(*,*)
+!        end if
           qn = qn + 0.5d0*h*(pn/m)
           call restrictCoord(qn,qv)
 !          call tbStat(qn,pn,qv,pv,fn,Pressure,enek,0.5d0*h)
           qn = qn + 0.5d0*h*(pn/m)
-          call calForcex(fn,qn)
-!          call calForceV(fv,qn,qv)
+          call calForcex(fn,qn,qv)
           call restrictCoord(qn,qv)
           pn = pn + 0.5d0*h*fn
           call calKinetic(enek,pn)
@@ -167,13 +199,13 @@ subroutine MolecularDynamics(qn,pn,qv,pv,fn,Pressure,enek)
         end do
         pv=pv*exp(-0.25d0*pt(1)/Mq(1))
         call calKinetic(enek,pn)
-        call calForcex(fn,qn)
+        call calForcex(fn,qn,qv)
 !        call calForceV(fv,qn,qv)
         call calPressure(Pressure,qv,enek,fn,qn)
         pv=pv+0.5d0*dtstat*(qv**3*(Pressure-Pressure_ex)+2.0d0*enek) !unchanged
         pv=pv*exp(-0.25d0*pt(1)/Mq(1))
         pn=pn*exp(-dtstat*(2.0d0*pv/Mex+pt(1)/Mq(1)))
-        
+     !freedom 
 !        qn=qn*exp(dtstat*pv/Mex)
 !          call restrictCoord(qn,qv)
         qv=qv*exp(dtstat*pv/Mex)
@@ -183,7 +215,7 @@ subroutine MolecularDynamics(qn,pn,qv,pv,fn,Pressure,enek)
 
         pv=pv*exp(-0.25d0*pt(1)/Mq(1))
         call calKinetic(enek,pn)
-        call calForcex(fn,qn)
+        call calForcex(fn,qn,qv)
 !        call calForceV(fv,qn,qv)
         call calPressure(Pressure,qv,enek,fn,qn)
         pv=pv+0.5d0*dtstat*(qv**3*(Pressure-Pressure_ex)+2.0d0*enek)
@@ -254,7 +286,7 @@ program main
 !
     !   write(*,*) 'sample=', j
     !      pause
-          call calForcex(fn,qn)
+          call calForcex(fn,qn,qv)
 !       do i=1,Noa
 !       write(22,*) fn(i,1),fn(i,2),fn(i,3)
 !       end do

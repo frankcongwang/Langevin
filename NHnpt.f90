@@ -1,7 +1,7 @@
 module init
   implicit none
   real(8), parameter :: kT = 1d0                       !needs to be modified
-  real(8), parameter :: h = 0.5d0                      !needs to be modified
+  real(8), parameter :: h = 0.1d0                      !needs to be modified
   real(8), parameter :: w = 1d0
   real(8), parameter :: m = 1d0
   real(8), parameter :: Mex = 18d0
@@ -79,7 +79,7 @@ subroutine MolecularDynamics(qn,pn,qv,pv,fn,fv,Pressure,enek)
         real(8) :: qt(Mtb),pt(Mtb)
         real(8) :: gt(Mtb)
         integer :: i
-        gt(Mtb)= pt(Mtb-1)*pt(Mtb-1)/Mq(Mtb-1)-kT
+        gt(Mtb)= pt(Mtb-1)*pt(Mtb-1)/Mq(Mtb-1)-kT  !qt1
 
         pt(Mtb)=pt(Mtb)+0.5d0*dtstat*gt(Mtb)
 
@@ -87,19 +87,19 @@ subroutine MolecularDynamics(qn,pn,qv,pv,fn,fv,Pressure,enek)
           pt(Mtb-i)=pt(Mtb-i)*exp(-0.25d0*dtstat*pt(Mtb-i+1)/Mq(Mtb-i+1))
 
           if (Mtb-i==1) gt(1)=2.0d0*enek+pv*pv/Mex-kT !unchanged
-          if (Mtb-i>1)  gt(Mtb-i)=pt(Mtb-i)*pt(Mtb-i)/Mq(Mtb-i)-kT
+          if (Mtb-i>1)  gt(Mtb-i)=pt(Mtb-i)*pt(Mtb-i)/Mq(Mtb-i)-kT !qt*
           pt(Mtb-i)=pt(Mtb-i)+0.5d0*dtstat*gt(Mtb-i)
 
           pt(Mtb-i)=pt(Mtb-i)*exp(-0.25d0*dtstat*pt(Mtb-i+1)/Mq(Mtb-i+1))
 
         end do
-        pv=pv*exp(-0.25d0*pt(1)/Mq(1))
+        pv=pv*exp(-0.25d0*dtstat*pt(1)/Mq(1))
         call kEnergy(enek,pn)
         call calForcex(fn,qn,qv)
         call calForceV(fv,qn,qv)
         call calPressure(Pressure,qv,enek,fn,qn,fv)
         pv=pv+0.5d0*dtstat*(qv*(Pressure-Pressure_ex)+2.0d0*enek) !unchanged
-        pv=pv*exp(-0.25d0*pt(1)/Mq(1))
+        pv=pv*exp(-0.25d0*dtstat*pt(1)/Mq(1))
         pn=pn*exp(-dtstat*(2.0d0*pv/Mex+pt(1)/Mq(1)))
         
 !        qn=qn*exp(dtstat*pv/Mex)
@@ -108,13 +108,13 @@ subroutine MolecularDynamics(qn,pn,qv,pv,fn,fv,Pressure,enek)
           qt(i)=qt(i)+dtstat*pt(i)
         end do
 
-        pv=pv*exp(-0.25d0*pt(1)/Mq(1))
+        pv=pv*exp(-0.25d0*dtstat*pt(1)/Mq(1))
         call kEnergy(enek,pn)
         call calForcex(fn,qn,qv)
         call calForceV(fv,qn,qv)
         call calPressure(Pressure,qv,enek,fn,qn,fv)
         pv=pv+0.5d0*dtstat*(qv*(Pressure-Pressure_ex)+2.0d0*enek)
-        pv=pv*exp(-0.25d0*pt(1)/Mq(1))
+        pv=pv*exp(-0.25d0*dtstat*pt(1)/Mq(1))
 
         gt(1)=2.0d0*enek+pv*pv/Mex-kT
         do i=1,Mtb-1
@@ -125,9 +125,11 @@ subroutine MolecularDynamics(qn,pn,qv,pv,fn,fv,Pressure,enek)
           if (i>1)  gt(i+1)=pt(i+1)*pt(i+1)/Mq(i+1)-kT
 
           pt(i)=pt(i)*exp(-0.25d0*dtstat*pt(i+1)/Mq(i+1))
+!	if (i==1) gt(2)= pt(2)*pt(2)/Mq(2)-kT
+!	if (i>1)  gt(i+1)=pt(i+1)*pt(i+1)/Mq(i+1)-kT
 
         end do
-
+!	pt(Mtb)=pt(Mtb)+0.5d0*dtstat*gt(Mtb)
 end subroutine
 
 

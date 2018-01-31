@@ -1,13 +1,13 @@
 module init
   implicit none
   real(8), parameter :: kT = 1d0                       !needs to be modified
-  real(8), parameter :: h = 0.1d0                      !needs to be modified
+  real(8), parameter :: h = 0.01d0                      !needs to be modified
   real(8), parameter :: w = 1d0
   real(8), parameter :: m = 1d0
   real(8), parameter :: Mex = 18d0
   real(8), parameter :: pressure_ex = 1d0
   integer, parameter :: eqstep=1d3/h
-  integer, parameter :: tsstep=1d5/h
+  integer, parameter :: tsstep=1d4/h
   integer, parameter :: sample=2
   integer, parameter :: Mtb=4   !or 6 the length of the NHC
   real(8), parameter :: mQ(Mtb) = 1d0
@@ -154,6 +154,7 @@ program main
   ep(:)=0
   ek(:)=0
     write(*,*) 'gamma=',gamma, 'dt=', h
+pres=0.0d0
 
     do j=1, sample
        write(c,'(I2)') j 
@@ -162,18 +163,18 @@ program main
        open(999,file=trim('note_'//adjustl(c)))
 
        call random_normal(rand)
-       pn = 0.2d0*(rand-0.5d0)
+       pn = rand
        call random_normal(rand)
-       pv = 0.0d0 !0.05d0*(rand-0.5d0)
+       pv = 0.05d0*rand
        call random_number(rand)
-       qn = 0.2d0*(rand-0.5d0)
+       qn = rand
        call random_normal(rand)
-       qv = 1.0d0 !1.5d0+0.05d0*rand
+       qv = 10.0d0 !1.5d0+0.05d0*rand
        do i=1,Mtb
          call random_normal(rand)
-         qt(i)=0.2d0*(rand-0.5d0)
+         qt(i)=0.2d0*rand
          call random_normal(rand)
-         pt(i)=0.2d0*(rand-0.5d0)
+         pt(i)=0.2d0*rand
        end do
 
     !   write(*,*) 'sample=', j

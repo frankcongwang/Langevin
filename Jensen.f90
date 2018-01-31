@@ -1,14 +1,14 @@
 module init
   implicit none
   real(8), parameter :: kT = 1d0                       !needs to be modified
-  real(8), parameter :: h = 0.1d0                      !needs to be modified
+  real(8), parameter :: h = 0.01d0                      !needs to be modified
   real(8), parameter :: w = 1d0
   real(8), parameter :: m = 1d0
   real(8), parameter :: Mex = 18d0
   real(8), parameter :: pressure_ex = 1d0
   integer, parameter :: eqstep=1d3/h
   integer, parameter :: tsstep=1d4/h
-  integer, parameter :: sample=2
+  integer, parameter :: sample=5
   integer, parameter :: Mtb=4   !or 6 the length of the NHC
   real(8), parameter :: mQ(Mtb) = 1d0
   real(8), parameter :: pi=3.14159265358979d0
@@ -68,7 +68,7 @@ subroutine MolecularDynamics(qn,pn,qv,pv,fn,fv,Pressure,enek)
         a2=(1-c2)/(1+c2)
         b2=1/(1+c2)
         d1=exp(-h*gammaV/Mex)
-        d1=exp(-h*gammaV/Mex)
+        d2=exp(-h*gamma/m)
           call calForcex(fn,qn,qv)
           call calForceV(fv,qn,qv)
           call kEnergy(enek,pn)
@@ -83,6 +83,7 @@ subroutine MolecularDynamics(qn,pn,qv,pv,fn,fv,Pressure,enek)
           call random_normal(rand)
           beta2=sqrt(m*kT*(1-d2*d2))*rand
           qn=qn*qv/qv0+h*2*qv/(qv+qv0)*b2*(pn/m+0.5d0*h/m*fn+0.5d0/m*beta2)
+          call restrictCoord(qn,qv)
           call calForcex(fn,qn,qv)
           call calForceV(fv,qn,qv)
           call kEnergy(enek,pn)
@@ -148,23 +149,22 @@ program main
   integer :: n, vcount(100)
   character(30) :: c
   vcount=0
-  open(22,file='result.maindat')
+  open(22,file='resultJensen.maindat')
   ep(:)=0
   ek(:)=0
     write(*,*) 'gamma=',gamma, 'dt=', h
-
+pres=0.0d0
     do j=1, sample
        write(c,'(I2)') j 
        write(*,*) 'Sample=', j
        open(33,file=trim('traj_'//adjustl(c)))
        open(999,file=trim('note_'//adjustl(c)))
-
        call random_normal(rand)
-       pn = 0.2d0*rand
+       pn = rand
        call random_normal(rand)
        pv = 0.05d0*rand
        call random_number(rand)
-       qn = 0.2d0*rand
+       qn = rand
        call random_normal(rand)
        qv = 10.0d0 !1.5d0+0.05d0*rand
 !       do i=1,Mtb
@@ -208,7 +208,7 @@ program main
         
          if (mod(i, tsstep/10+1) .eq. 0) then
              write(*,*) real(i)/real(tsstep)*100, '%'
-             write(*,*) qn, pn,pres(j)
+             write(*,*) qn, pn,Pressure
          end if
         enddo
       close(33)

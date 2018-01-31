@@ -8,12 +8,12 @@ module init
   real(8), parameter :: pressure_ex = 1d0
   integer, parameter :: eqstep=1d3/h
   integer, parameter :: tsstep=1d4/h
-  integer, parameter :: sample=2
+  integer, parameter :: sample=5
   integer, parameter :: Mtb=4   !or 6 the length of the NHC
   real(8), parameter :: mQ(Mtb) = 1d0
   real(8), parameter :: pi=3.14159265358979d0
-  real(8) :: gamma = 1.0d0
-  real(8) :: gammaV = 1.0d0
+  real(8) :: gamma = 20.0d0*m
+  real(8) :: gammaV = 1.0d0*Mex
 end module init
 
 subroutine calForcex(fn, x, V)
@@ -56,53 +56,82 @@ end subroutine
 
 subroutine MolecularDynamics(qn,pn,qv,pv,fn,fv,Pressure,enek)
         use init
+        use random
         implicit none
         real(8) :: qn,pn,qv,pv,fn,fv,Pressure,enek
-          pn = pn + 0.5d0*h*fn
-          call tbStat(qn,pn,qv,pv,fn,fv,Pressure,enek)
-          pn = pn + 0.5d0*h*fn
+        real(8) :: qv0,fp0,fn0,a1,b1,a2,b2,c1,c2,d1,d2,beta1,beta2
+        real(8) :: rand
+        c1=gammaV*h/2/Mex
+        a1=(1-c1)/(1+c1)
+        b1=1/(1+c1)
+        c2=gamma*h/2/m
+        a2=(1-c2)/(1+c2)
+        b2=1/(1+c2)
+        d1=exp(-h*gammaV/Mex)
+        d2=exp(-h*gamma/m)
           call calForcex(fn,qn,qv)
           call calForceV(fv,qn,qv)
           call kEnergy(enek,pn)
           call calPressure(Pressure,qv,enek,fn,qn,fv)
+          fp0=Pressure-Pressure_ex
+          call random_normal(rand)
+          beta1=sqrt(Mex*kT*(1-d1*d1))*rand !sqrt(2*gammaV*kT*h)*rand
+          qv0=qv
+          qv=qv+h*b1*pv/Mex+0.5d0*h*h*b1/Mex*(Pressure-Pressure_ex)+0.5d0*h*b1/Mex*beta1
+          call calForcex(fn,qn,qv)
+          fn0=fn
+          call random_normal(rand)
+          beta2=sqrt(m*kT*(1-d2*d2))*rand !sqrt(2*gamma*kT*h)*rand
+          qn=qn*qv/qv0+h*2*qv/(qv+qv0)*b2*(pn/m+0.5d0*h/m*fn+0.5d0/m*beta2)
+          call restrictCoord(qn,qv)
+          call calForcex(fn,qn,qv)
+          call calForceV(fv,qn,qv)
+          call kEnergy(enek,pn)
+          call calPressure(Pressure,qv,enek,fn,qn,fv)
+          pv=a1*pv+0.5d0*h*(a1*fp0+Pressure-Pressure_ex)+b1*beta1
+          pn=a2*pn+0.5d0*h*(a2*fn0+fn)+b2*beta2
+!write(*,*) qn,pn,qv,pv
+!read(*,*)
+          call kEnergy(enek,pn)
+          call calPressure(Pressure,qv,enek,fn,qn,fv)
   end subroutine
 
-  subroutine tbStat(qn,pn,qv,pv,fn,fv,Pressure,enek)
-        use random
-        use init
-        implicit none
-        real(8) :: qn,pn,qv,pv,fn,fv,Pressure,enek
-        real(8) :: rand,a,b
-        integer :: i
-        call kEnergy(enek,pn)
+!  subroutine tbStat(qn,pn,qv,pv,fn,fv,Pressure,enek)
+!        use random
+!        use init
+!        implicit none
+!        real(8) :: qn,pn,qv,pv,fn,fv,Pressure,enek
+!        real(8) :: rand,a,b
+!        integer :: i
+!        call kEnergy(enek,pn)
 !        call calForcex(fn,qn,qv)
-        call calForceV(fv,qn,qv)
-        call calPressure(Pressure,qv,enek,fn,qn,fv)
-          pv = pv + 0.5d0*h*(Pressure-Pressure_ex)
-!write(*,*) "**",qn,pn,qv,pv,fn
-!read(*,*)
+!        call calForceV(fv,qn,qv)
+!        call calPressure(Pressure,qv,enek,fn,qn,fv)
+!          pv = pv + 0.5d0*h*(Pressure-Pressure_ex)
+!!write(*,*) "**",qn,pn,qv,pv,fn
+!!read(*,*)
 !          qn = qn + 0.5d0*h*pn/m
 !          call restrictCoord(qn,qv)
-          qn = (qn+pn/m*qv*Mex/pv)*exp(0.5d0*h*pv/Mex/qv)-qv*Mex/pv*pn/m
-          call restrictCoord(qn,qv)
-          qv = qv + 0.5d0*h*pv/Mex
-        a=exp(-h*gammaV)
-       call random_normal(rand)
-        pv=pv*a+sqrt(Mex*kT*(1-a*a))*rand
-        b=exp(-h*gamma)
-       call random_normal(rand)
-        pn=pn*b+sqrt(m*kT*(1-b*b))*rand
-          qv = qv + 0.5d0*h*pv/Mex
-          qn = (qn+pn/m*qv*Mex/pv)*exp(0.5d0*h*pv/Mex/qv)-qv*Mex/pv*pn/m
-          call restrictCoord(qn,qv)
+!          qn = qn*exp(0.5d0*h*pv/Mex/qv)
+!          call restrictCoord(qn,qv)
+!          qv = qv + 0.5d0*h*pv/Mex
+!        a=exp(-h*gammaV/Mex)
+!       call random_normal(rand)
+!        pv=pv*a+sqrt(m*kT*(1-a*a))*rand
+!        b=exp(-h*gamma/m)
+!       call random_normal(rand)
+!        pn=pn*b+sqrt(Mex*kT*(1-b*b))*rand
+!          qv = qv + 0.5d0*h*pv/Mex
+!          qn = qn*exp(0.5d0*h*pv/Mex/qv)
+!          call restrictCoord(qn,qv)
 !          qn = qn + 0.5d0*h*pn/m
 !          call restrictCoord(qn,qv)
-        call kEnergy(enek,pn)
-        call calForcex(fn,qn,qv)
-        call calForceV(fv,qn,qv)
-        call calPressure(Pressure,qv,enek,fn,qn,fv)
-          pv = pv + 0.5d0*h*(Pressure-Pressure_ex)
-end subroutine
+!        call kEnergy(enek,pn)
+!        call calForcex(fn,qn,qv)
+!        call calForceV(fv,qn,qv)
+!        call calPressure(Pressure,qv,enek,fn,qn,fv)
+!          pv = pv + 0.5d0*h*(Pressure-Pressure_ex)
+!end subroutine
 
 
 
@@ -120,18 +149,16 @@ program main
   integer :: n, vcount(100)
   character(30) :: c
   vcount=0
-  open(22,file='resultLangevin.maindat')
+  open(22,file='resultJensen.maindat')
   ep(:)=0
   ek(:)=0
     write(*,*) 'gamma=',gamma, 'dt=', h
 pres=0.0d0
-
     do j=1, sample
        write(c,'(I2)') j 
        write(*,*) 'Sample=', j
        open(33,file=trim('traj_'//adjustl(c)))
        open(999,file=trim('note_'//adjustl(c)))
-
        call random_normal(rand)
        pn = rand
        call random_normal(rand)
@@ -170,6 +197,8 @@ pres=0.0d0
          ep(j)  = ep(j) + eptmp/tsstep
          ek(j)  = ek(j) + ektmp/tsstep
          pres(j)=pres(j)+ Pressure/tsstep
+!   write(*,*) pres(j)
+!   read(*,*)
          write(999,*) i,pn,qn,pv,qv
          n=floor(10.0d0*qv)+1
          if(n<=100) vcount(n)=vcount(n)+1
@@ -179,7 +208,7 @@ pres=0.0d0
         
          if (mod(i, tsstep/10+1) .eq. 0) then
              write(*,*) real(i)/real(tsstep)*100, '%'
-             write(*,*) qn, pn
+             write(*,*) qn, pn,Pressure
          end if
         enddo
       close(33)
@@ -190,6 +219,8 @@ pres=0.0d0
    ek_ave = sum(ek)/sample
    ek_std = sqrt(sum((ek-ek_ave)**2)/(sample-1)/sample)
    pres_ave=sum(pres)/sample
+   write(*,*) pres_ave
+   read(*,*)
    pres_std=sqrt(sum((pres-pres_ave)**2)/(sample-1)/sample)
    write(22,'(F8.2,F8.2,F16.8,F16.8,F16.8,F16.8)') h,gamma, ep_ave,ep_std,ek_ave,ek_std,pres_ave,pres_std
 open(998,file="countv.txt")

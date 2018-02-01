@@ -1,7 +1,7 @@
 module init
   implicit none
   real(8), parameter :: kT = 1d0                       !needs to be modified
-  real(8), parameter :: h = 0.01d0                      !needs to be modified
+  real(8), parameter :: h = 0.002d0                      !needs to be modified
   real(8), parameter :: w = 1d0
   real(8), parameter :: m = 1d0
   real(8), parameter :: Mex = 50d0

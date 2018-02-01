@@ -5,10 +5,10 @@ module init
   real(8), parameter :: w = 1d0
   real(8), parameter :: m = 1d0
   real(8), parameter :: Mex = 50d0
-  real(8), parameter :: pressure_ex = 1d0
+  real(8), parameter :: pressure_ex = 2d0
   integer, parameter :: eqstep=1d3/h
   integer, parameter :: tsstep=1d4/h
-  integer, parameter :: sample=2
+  integer, parameter :: sample=5
   integer, parameter :: Mtb=4   !or 6 the length of the NHC
   real(8), parameter :: mQ(Mtb) = 1d0
   real(8), parameter :: pi=3.14159265358979d0

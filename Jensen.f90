@@ -4,16 +4,16 @@ module init
   real(8), parameter :: h = 0.01d0                      !needs to be modified
   real(8), parameter :: w = 1d0
   real(8), parameter :: m = 1d0
-  real(8), parameter :: Mex = 18d0
+  real(8), parameter :: Mex = 50d0
   real(8), parameter :: pressure_ex = 1d0
-  integer, parameter :: eqstep=1d3/h
-  integer, parameter :: tsstep=1d4/h
-  integer, parameter :: sample=5
-  integer, parameter :: Mtb=4   !or 6 the length of the NHC
-  real(8), parameter :: mQ(Mtb) = 1d0
+  integer, parameter :: eqstep=1d4/h
+  integer, parameter :: tsstep=1d5/h
+  integer, parameter :: sample=2
+!  integer, parameter :: Mtb=4   !or 6 the length of the NHC
+!  real(8), parameter :: mQ(Mtb) = 1d0
   real(8), parameter :: pi=3.14159265358979d0
-  real(8) :: gamma = 20.0d0
-  real(8) :: gammav = 10.0d0
+  real(8) :: gamma = 1000.0d0
+  real(8) :: gammaV = 5000.0d0
 end module init
 
 subroutine calForcex(fn, x, V)
@@ -75,13 +75,13 @@ subroutine MolecularDynamics(qn,pn,qv,pv,fn,fv,Pressure,enek)
           call calPressure(Pressure,qv,enek,fn,qn,fv)
           fp0=Pressure-Pressure_ex
           call random_normal(rand)
-          beta1=sqrt(Mex*kT*(1-d1*d1))*rand
+          beta1=sqrt(2*gammaV*kT*h)*rand
           qv0=qv
           qv=qv+h*b1*pv/Mex+0.5d0*h*h*b1/Mex*(Pressure-Pressure_ex)+0.5d0*h*b1/Mex*beta1
           call calForcex(fn,qn,qv)
           fn0=fn
           call random_normal(rand)
-          beta2=sqrt(m*kT*(1-d2*d2))*rand
+          beta2=sqrt(2*gamma*kT*h)*rand
           qn=qn*qv/qv0+h*2*qv/(qv+qv0)*b2*(pn/m+0.5d0*h/m*fn+0.5d0/m*beta2)
           call restrictCoord(qn,qv)
           call calForcex(fn,qn,qv)
@@ -160,13 +160,13 @@ pres=0.0d0
        open(33,file=trim('traj_'//adjustl(c)))
        open(999,file=trim('note_'//adjustl(c)))
        call random_normal(rand)
-       pn = rand
+       pn = sqrt(m*kT/2)*rand
        call random_normal(rand)
-       pv = 0.05d0*rand
+       pv = 0.2d0*rand
        call random_number(rand)
        qn = rand
        call random_normal(rand)
-       qv = 10.0d0 !1.5d0+0.05d0*rand
+       qv = 3.0d0 !1.5d0+0.05d0*rand
 !       do i=1,Mtb
 !         call random_normal(rand)
 !         qt(i)=0.2d0*rand
@@ -181,9 +181,9 @@ pres=0.0d0
        do i=1, eqstep
          call MolecularDynamics(qn,pn,qv,pv,fn,fv,Pressure,ektmp)
          eptmp = m*w**2*qv**2/4/pi**2*(1-cos(2*pi*qn/qv))       !needs to be modified
-         ep(j)  = ep(j) + eptmp/tsstep
-         ek(j)  = ek(j) + ektmp/tsstep
-         pres(j)=pres(j)+ Pressure/tsstep
+!         ep(j)  = ep(j) + eptmp/tsstep
+!         ek(j)  = ek(j) + ektmp/tsstep
+!         pres(j)=pres(j)+ Pressure/tsstep
          write(999,*) i,pn,qn,pv,qv
 !       p  pause
 !                    write(33,'(I16,F16.8,F16.8,F16.8,F16.8)') i,eptmp,ektmp,Pressure,eptmp+ektmp+Pressure*qv

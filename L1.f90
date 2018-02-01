@@ -1,10 +1,10 @@
 module init
   implicit none
   real(8), parameter :: kT = 1d0                       !needs to be modified
-  real(8), parameter :: h = 0.0002d0                      !needs to be modified
+  real(8), parameter :: h = 0.002d0                      !needs to be modified
   real(8), parameter :: w = 1d0
   real(8), parameter :: m = 1d0
-  real(8), parameter :: Mex = 18d0
+  real(8), parameter :: Mex = 50d0
   real(8), parameter :: pressure_ex = 1d0
   integer, parameter :: eqstep=1d3/h
   integer, parameter :: tsstep=1d4/h
@@ -12,8 +12,8 @@ module init
   integer, parameter :: Mtb=4   !or 6 the length of the NHC
   real(8), parameter :: mQ(Mtb) = 1d0
   real(8), parameter :: pi=3.14159265358979d0
-  real(8) :: gamma = 1.0d0
-  real(8) :: gammaV = 1.0d0
+  real(8) :: gamma = 100.0d0
+  real(8) :: gammaV = 500.0d0
 end module init
 
 subroutine calForcex(fn, x, V)
@@ -133,13 +133,13 @@ pres=0.0d0
        open(999,file=trim('note_'//adjustl(c)))
 
        call random_normal(rand)
-       pn = rand
+       pn = sqrt(m*kT/2)*rand
        call random_normal(rand)
-       pv = 0.05d0*rand
+       pv = 0.2d0*rand
        call random_number(rand)
        qn = rand
        call random_normal(rand)
-       qv = 10.0d0 !1.5d0+0.05d0*rand
+       qv = 3.0d0 !1.5d0+0.05d0*rand
 !       do i=1,Mtb
 !         call random_normal(rand)
 !         qt(i)=0.2d0*rand
@@ -154,9 +154,9 @@ pres=0.0d0
        do i=1, eqstep
          call MolecularDynamics(qn,pn,qv,pv,fn,fv,Pressure,ektmp)
          eptmp = m*w**2*qv**2/4/pi**2*(1-cos(2*pi*qn/qv))       !needs to be modified
-         ep(j)  = ep(j) + eptmp/tsstep
-         ek(j)  = ek(j) + ektmp/tsstep
-         pres(j)=pres(j)+ Pressure/tsstep
+!         ep(j)  = ep(j) + eptmp/tsstep
+!         ek(j)  = ek(j) + ektmp/tsstep
+!         pres(j)=pres(j)+ Pressure/tsstep
          write(999,*) i,pn,qn,pv,qv
 !       p  pause
 !                    write(33,'(I16,F16.8,F16.8,F16.8,F16.8)') i,eptmp,ektmp,Pressure,eptmp+ektmp+Pressure*qv

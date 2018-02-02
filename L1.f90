@@ -5,7 +5,7 @@ module init
   real(8), parameter :: w = 1d0
   real(8), parameter :: m = 1d0
   real(8), parameter :: Mex = 50d0
-  real(8), parameter :: pressure_ex = 2d0
+  real(8), parameter :: pressure_ex = 1d0
   integer, parameter :: eqstep=1d3/h
   integer, parameter :: tsstep=1d4/h
   integer, parameter :: sample=5
@@ -50,8 +50,9 @@ subroutine restrictCoord(qn,qv)
         implicit none
         real(8) :: qn,qv
         integer :: i,j
-                if (qn>=qv) qn=qn-qv
-                if (qn<0.0d0) qn=qn+qv
+!                if (qn>=qv) qn=qn-qv
+!                if (qn<0.0d0) qn=qn+qv
+qn=qn-floor(qn/qv)*qv
 end subroutine
 
 subroutine MolecularDynamics(qn,pn,qv,pv,fn,fv,Pressure,enek)
